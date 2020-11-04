@@ -18,21 +18,13 @@ static qvec list_create(int cap) {
 		l = free_list[numfreelist];
 		l->length = 0;
 	} else {
-		l = (qvec) skym_alloc_pool(_S, NULL, 0, sizeof(struct qvector));
+		l = (qvec) Mem.alloc(_S, NULL, 0, sizeof(struct qvector));
 	}
-	l->data = (qval*) skym_alloc(_S, NULL, 0, sizeof(qval) * cap);
+	l->data = (qval*) Mem.alloc(_S, NULL, 0, sizeof(qval) * cap);
 	l->capacity = cap;
 	return l;
 }
-//static qvec list_init(qvec*l, int cap, qtype t) {
-//	qvec l;
-//	if (cap == 0)
-//		cap = DEFAULT_SIZE;
-//	l->data = (qval*) skym_alloc_pool(_S, NULL, 0, sizeof(qval) * cap);
-//	l->capacity = cap;
-//	l->t = t;
-//	return l;
-//}
+
 static qvec list_append(qvec list, qval data) {
 	if (list->length >= list->capacity) {
 		list_resize(list, -1);
@@ -44,7 +36,7 @@ static qvec list_resize(qvec list, int nsize) {
 	if (nsize < 0) {
 		int used = list->length;
 		if (used >= list->capacity) {
-			sky_assert(used == list->capacity);
+			qassert(used == list->capacity);
 			if (used < 64)
 				nsize = used * 2;
 			else {
@@ -53,14 +45,14 @@ static qvec list_resize(qvec list, int nsize) {
 			if (nsize < 4)
 				nsize = 4;
 			if (nsize < used)
-				skyc_runerror(_S, "qvec overflow");
+				qrunerror(_S, "qvec overflow");
 		} else {
 			return list;
 		}
 	}
 //	list->data = (qval*) realloc(list->data, sizeof(qval) * nsize);
-	list->data = (qval*) skym_alloc(_S, list->data, sizeof(qval) * list->capacity,
-			sizeof(qval) * nsize);
+	list->data = (qval*) Mem.alloc(_S, list->data, sizeof(qval) * list->capacity,
+                                   sizeof(qval) * nsize);
 	list->capacity = nsize;
 	return list;
 }
@@ -69,9 +61,9 @@ static qvec add(qvec l, int index, qval data) {
 	int used = l->length;
 	if (index < 0) {
 		index += l->length;
-		sky_assert(index >= 0);
+		qassert(index >= 0);
 	}
-	sky_assert(index <= used);
+	qassert(index <= used);
 	if (used >= l->capacity)
 		list_resize(l, -1);
 	qval *ptr = l->data;
@@ -103,7 +95,7 @@ static qvec addSort(qvec l, qval data, compare cmp, bool keepSame) {
 //void moveArray(ListS list)
 qvec list_remove(qvec list, int index) {
 	int used = list->length;
-	sky_assert(index < used && index >= -used);
+	qassert(index < used && index >= -used);
 	if (index < 0)
 		index += used;
 	qval *data = list->data;
@@ -119,7 +111,7 @@ qvec list_remove(qvec list, int index) {
 
 static qval list_at(qvec l, size_t index) {
 	int used = l->length;
-	sky_assert(index < used && index >= -used);
+	qassert(index < used && index >= -used);
 	if (index < 0)
 		return l->data[index + used];
 	return l->data[index];
@@ -129,7 +121,7 @@ static qvec list_addArray(qvec list, qval *a, size_t n) {
 	int nused = used + n;
 	if (nused > list->capacity) {
 		list_resize(list, nused * 1.2);
-		sky_check(list->capacity <= nused, "qvec overflow!");
+		qcheck(list->capacity <= nused, "qvec overflow!");
 	}
 	qval *data = list->data + used;
 	for (int i = 0; i <= n; i++) {
@@ -143,7 +135,7 @@ static qvec list_addFromVec(qvec list, qvec a) {
 	int nused = used + a->length;
 	if (nused >= list->capacity) {
 		list_resize(list, nused * 1.2);
-		sky_check(list->capacity >= nused, "qvec overflow!");
+		qcheck(list->capacity >= nused, "qvec overflow!");
 	}
 	qval *data = list->data + used;
 	int n = a->length;
@@ -183,7 +175,7 @@ static void list_destroy(qvec *list_ptr, void (*destructor)(qval)) {
 	if (destructor) {
 		if (destructor == ARR_FORCE_FREE) {
 			for (int i = 0; i < used; i++)
-				skym_alloc_pool(_S, data[i].p, sizeof(qval), 0);
+				Mem.alloc(_S, data[i].p, sizeof(qval), 0);
 		} else if (destructor == ARR_TYPE_FREE) {
 			for (int i = 0; i < used; i++)
 				l->type->free(data[i].p);
@@ -192,12 +184,12 @@ static void list_destroy(qvec *list_ptr, void (*destructor)(qval)) {
 				destructor(data[i]);
 		}
 	}
-	skym_alloc(_S, data, sizeof(qval) * l->capacity, 0);
+    Mem.alloc(_S, data, sizeof(qval) * l->capacity, 0);
 	if (numfreelist < MAXFREELIST) {
 		free_list[numfreelist] = l;
 		numfreelist++;
 	} else {
-		skym_alloc_pool(_S, l, sizeof(struct qvector), 0);
+		Mem.alloc(_S, l, sizeof(struct qvector), 0);
 	}
 	*list_ptr = NULL;
 	return;
@@ -212,13 +204,13 @@ static qval pop_back(qvec list) {
 	return cast(qval, 0);
 }
 static void list_shrink(qvec list) {
-	list->data = (qval*) skym_alloc(_S, list->data, sizeof(qval) * list->capacity,
-			sizeof(qval) * list->length);
+	list->data = (qval*) Mem.alloc(_S, list->data, sizeof(qval) * list->capacity,
+                                   sizeof(qval) * list->length);
 	list->capacity = list->length;
 }
 static qtuple* list_toTuple(qvec list) {
-	qtuple *tuple = (qtuple*) skym_alloc(_S, NULL, 0,
-			sizeof(qval) * list->length + sizeof(qtuple));
+	qtuple *tuple = (qtuple*) Mem.alloc(_S, NULL, 0,
+                                        sizeof(qval) * list->length + sizeof(qtuple));
 	tuple->length = list->length;
 	for (int i = 0; i < tuple->length; i++) {
 		tuple->data[i] = list->data[i];
@@ -235,7 +227,7 @@ static qvec list_clone(qvec list) {
 }
 void list_cache_clear() {
 	for (int i = 0; i < numfreelist; i++) {
-		skym_alloc_pool(_S, free_list[i], sizeof(struct qvector), NULL);
+		Mem.alloc(_S, free_list[i], sizeof(struct qvector), NULL);
 	}
 	numfreelist = 0;
 }

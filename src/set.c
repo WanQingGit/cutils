@@ -17,7 +17,7 @@ static void set_resize(State *S, qset *t, unsigned int size) {
 	int sizeht = sizearr(ceillog2(size));
 	int mod = sizeht - 1;
 	if (sizeht > INT_MAX)
-		skyc_runerror(S, "table overflow");
+		qrunerror(S, "table overflow");
 	if (sizeht != oldsize) {
 		t->entry = skym_newvector(S, sizeht, qsetEntry*);
 		t->capacity = sizeht;
@@ -32,7 +32,7 @@ static void set_resize(State *S, qset *t, unsigned int size) {
 			}
 		}
 		if (oldsize)
-			skym_alloc(S, oldt, oldsize * sizeof(qsetEntry*), 0);
+            Mem.alloc(S, oldt, oldsize * sizeof(qsetEntry *), 0);
 	}
 }
 
@@ -58,7 +58,7 @@ static bool set_contain(State *S, qset *t, const qobj *key, bool isAdd) {
 	if (t->length == 0) {
 		set_resize(S, t, 2);
 	}
-	skyc_assert(S, key != NULL && key->type != V_NIL);
+	qassert_(S, key != NULL && key->type != V_NIL);
 	uint hash = sky_hash(key);
 	qsetEntry *entry = gentry2(t, hash);
 	if (key->type->compare) {
@@ -82,7 +82,7 @@ static bool set_contain(State *S, qset *t, const qobj *key, bool isAdd) {
 		if (t->length >= t->capacity) {
 			set_resize(S, t, t->capacity * 2);
 		}
-		entry = (qsetEntry*) skym_alloc(S, NULL, 0, sizeof(qsetEntry));
+		entry = (qsetEntry*) Mem.alloc(S, NULL, 0, sizeof(qsetEntry));
 		entry->data = *key;
 		entry->next = gentry2(t, hash);
 		++t->length;

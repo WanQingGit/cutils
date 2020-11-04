@@ -112,7 +112,7 @@ char* str_rtrim(char* s) {
 
 void *qmemcpy(void *dst, const void *src, size_t num) {
 	byte l = sizeof(size_t);
-	sky_assert((dst!=NULL)&&(src!=NULL));
+	qassert((dst!=NULL)&&(src!=NULL));
 	int wordnum = num / l;
 	int slice = num % l;
 	size_t* pintsrc = (size_t *) src;

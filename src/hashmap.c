@@ -18,7 +18,7 @@ static void map_resize(State *S, qmap *t, unsigned int size) {
 	for (; sizeht < size && sizeht > 0; sizeht <<= 1)
 		;
 	if (sizeht< 0)
-		skyc_runerror(S, "table overflow");
+		qrunerror(S, "table overflow");
 	if (sizeht != oldsize) {
 		qentry *oldt = uentry(t);
 		uentry(t) = skym_newvector(S, sizeht, qentry);
@@ -52,7 +52,7 @@ static void map_resize(State *S, qmap *t, unsigned int size) {
 			}
 		}
 		if (oldsize)
-			skym_alloc(S, oldt, oldsize * sizeof(qentry), 0);
+            Mem.alloc(S, oldt, oldsize * sizeof(qentry), 0);
 	}
 }
 
@@ -74,7 +74,7 @@ static bool map_del(State *S, qmap *t, const qobj *key, qentry2 *res) {
 					if (t->type & MAP_TABLE)
 						res->val = &entry->val;
 				}
-				skym_alloc(S, entry, sizeof(qentry1), 0);
+                Mem.alloc(S, entry, sizeof(qentry1), 0);
 //				free(entry);
 				t->length--;
 				return true;
@@ -98,7 +98,7 @@ static bool map_del(State *S, qmap *t, const qobj *key, qentry2 *res) {
 						res->val = entry->val;
 					}
 				}
-				skym_alloc(S, entry, sizeof(qentry2), 0);
+                Mem.alloc(S, entry, sizeof(qentry2), 0);
 				t->length--;
 				return true;
 			}
@@ -129,9 +129,9 @@ static bool map_gset(State *S, qmap *t, const qobj *key, bool insert,
 				map_resize(S, t, t->size * 2);
 			}
 			if (t->type & MAP_TABLE) {
-				entry2 = (qentry2*) skym_alloc(S, NULL, 0, sizeof(qentry2));
+				entry2 = (qentry2*) Mem.alloc(S, NULL, 0, sizeof(qentry2));
 			} else {
-				entry2 = (qentry2*) skym_alloc(S, NULL, 0, sizeof(qentry4));
+				entry2 = (qentry2*) Mem.alloc(S, NULL, 0, sizeof(qentry4));
 			}
 			entry2->key = key;
 			entry2->next = gentry2(t, hash);
@@ -142,7 +142,7 @@ static bool map_gset(State *S, qmap *t, const qobj *key, bool insert,
 		}
 		//t->keytype
 	} else {
-		skyc_assert(S, key != NULL && key->type->compare&&key->type->hash);
+		qassert_(S, key != NULL && key->type->compare&&key->type->hash);
 		uint hash = key->type->hash(key->val.i);
 		qentry1 *entry = gentry1(t, hash);
 		while (entry) {
@@ -161,9 +161,9 @@ static bool map_gset(State *S, qmap *t, const qobj *key, bool insert,
 			}
 			++t->length;
 			if (t->type & MAP_TABLE) {
-				entry = (qentry1*) skym_alloc(S, NULL, 0, sizeof(qentry1));
+				entry = (qentry1*) Mem.alloc(S, NULL, 0, sizeof(qentry1));
 			} else {
-				entry = (qentry1*) skym_alloc(S, NULL, 0, sizeof(qentry3));
+				entry = (qentry1*) Mem.alloc(S, NULL, 0, sizeof(qentry3));
 			}
 			entry->next = gentry1(t, hash);
 			gentry1(t, hash) = entry;
@@ -202,7 +202,7 @@ static bool map_next(mapIter *iter) {
 	return false;
 }
 static qmap* map_new(State *S, Type keytype, bool isTable) {
-	qmap *t = cast(qmap*, skym_alloc_pool(S,NULL,0,sizeof(qmap) + sizeof(Type)));
+	qmap *t = cast(qmap*, Mem.alloc(S, NULL, 0, sizeof(qmap) + sizeof(Type)));
 //	qmap *t = cast(qmap*, Mem.new(S, V_TABLE, sizeof(qmap) + sizeof(Type)));
 	map_keytype(t) = keytype;
 	if (isTable)
@@ -225,7 +225,7 @@ static void map_destroy(qmap *map, int freeMode) {
 			qentry2 *entry2, *ptr;
 			Type valtype;
 			if (freeMode & MAP_FREE_VAL)
-				skyc_assert_(valtype = map->valtype);
+				qassert(valtype = map->valtype);
 
 			for (int i = 0; i < map->size; i++) {
 				entry2 = map->entry[i]._2;
@@ -238,7 +238,7 @@ static void map_destroy(qmap *map, int freeMode) {
 					if (freeMode & MAP_FREE_VAL) {
 						valtype->free(ptr->val);
 					}
-					skym_alloc(_S, ptr, entrysize, 0);
+                    Mem.alloc(_S, ptr, entrysize, 0);
 				}
 			}
 		} else {
@@ -258,13 +258,13 @@ static void map_destroy(qmap *map, int freeMode) {
 					if (freeMode & MAP_FREE_VAL) {
 						ptr->val.type->free(ptr->val.val.i);
 					}
-					skym_alloc(_S, ptr, entrysize, 0);
+                    Mem.alloc(_S, ptr, entrysize, 0);
 				}
 			}
 		}
 	}
-	skym_alloc(_S, map->entry, map->size * sizeof(qentry), 0);
-	skym_alloc_pool(_S, map, sizeof(qmap) + sizeof(Type), 0);
+    Mem.alloc(_S, map->entry, map->size * sizeof(qentry), 0);
+	Mem.alloc(_S, map, sizeof(qmap) + sizeof(Type), 0);
 }
 struct apiMap Map = { map_new, map_resize, map_gset, map_del, map_iter,
 		map_next, map_destroy };

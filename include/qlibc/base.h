@@ -30,10 +30,10 @@ extern "C"{
 #define  TOSTRING(x) STRINGIFY(x)
 #define  AT __FILE__ ":" TOSTRING(__LINE__)
 //#define  AT __FILE__ ":" #__FUNCTION__" "TOSTRING(__LINE__)
-#define sky_error(str,code) \
+#define qerror(str,code) \
 	do{fprintf(stdout,"%s %s\ttype:%d\n",AT,str,code);exit(code);}while(0)
 
-#define sky_assert(expr)							\
+#define qassert(expr)							\
   ({			\
       if (!(expr))								\
        {\
@@ -42,7 +42,7 @@ extern "C"{
       }								\
     })
 
-#define sky_check(expr,str)							\
+#define qcheck(expr,str)							\
   ({			\
       if (!(expr))								\
        {\
@@ -60,9 +60,14 @@ extern "C"{
 
 typedef unsigned int uint;
 typedef unsigned char byte;
-
+#ifndef bool
+#ifndef false
 typedef enum {
 false,true}bool;
+#else
+typedef char bool;
+#endif
+#endif
 typedef ssize_t Int;
 typedef size_t UInt;
 #define RInt register Int

@@ -26,7 +26,7 @@ qprop *prop_create(char *path, char *sep) {
 			if (*ptr == '\0')
 				continue;
 			ptr2 = strstr(ptr, sep);
-			skyc_assert_(ptr2);
+			qassert(ptr2);
 			*ptr2 = '\0';
 			ptr2+=prop->sep->len;
 			qstr *key = STR.get(str_trim(ptr));

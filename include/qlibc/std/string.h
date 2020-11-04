@@ -10,8 +10,10 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
+
 #include "qlibc/base.h"
 #include "qlibc/object.h"
+#include <string.h>
 #define MINSTRTABSIZE	 128
 
 struct strApi {
@@ -26,7 +28,7 @@ struct strApi {
 	void (*split)(qvec l, const char *str, const char *s);
 	int (*index)(qstrbuf *buffer, const char *s);
 };
-void skytstr_resize(State *S, int newsize);
+void string_table_resize(State *S, int newsize);
 extern struct strApi STR;
 //#define STR_NEW (qstrbuf *)calloc(1,sizeof(qstrbuf))
 #ifdef __cplusplus

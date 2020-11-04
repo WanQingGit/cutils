@@ -52,7 +52,7 @@ char skip_space(char** s);
 //qstr *skys_new(State *L, const char *str, size_t l);
 
 uint makeseed(State *S);
-//qstr *skys_get(State *S, const char *str);
+//qstr *string_get(State *S, const char *str);
 #ifdef __cplusplus
 }
 #endif

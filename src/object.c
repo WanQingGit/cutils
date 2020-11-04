@@ -13,6 +13,7 @@
 #include "stl/rbtree.h"
 #include "stl/bytelist.h"
 #include "qlibc/control.h"
+#include <math.h>
 //TYPEDEFINE
 void serialStr(qbytes *l, qstr *s);
 
@@ -22,6 +23,7 @@ uint hashType(Type type) {
 void serialType(qbytes *l, Type o) {
 	serialStr(l, o->name);
 }
+int deserialStr(byte *l, intptr_t *i);
 int deserialType(byte *l, intptr_t *i) {
 	qstr *s;
 	int diff = deserialStr(l, &s);
@@ -60,13 +62,6 @@ char* int2str(qbytes* bytes, INT o) {
 }
 int cmpFloat(FLT a, FLT b) {
 	static FLT eps_0 = 1.0e-6;
-//	FLT b;
-//	if (o->type == typeFloat)
-//		b = o->val.flt;
-//	else if (o->type == typeInt)
-//		b = o->val.i;
-//	else
-//		return -1;
 	if (fabs(a - b) < eps_0)
 		return 0;
 	return a > b ? 1 : -1;
@@ -168,7 +163,7 @@ void serialMap(qbytes *bytes, qmap *map) {
 	writeInt32(l, map->size); //4
 	writeByte(l, map->type); //1
 	if (valtype)
-		skyc_assert_(map->type & MAP_TABLE);
+		qassert(map->type & MAP_TABLE);
 	if (keytype) {
 		writeByte(l, 1);
 		typeType->serialize(bytes, keytype);
@@ -233,13 +228,13 @@ int deserialMap(byte *l, intptr_t *map_ptr) {
 			for (int i = 0; i < length; i++) {
 				l += keytype->deserial(l, &key);
 				l += valtype->deserial(l, &value);
-				skyc_assert_(Map.gset(_S, map, key, true, &entry) == false);
+				qassert(Map.gset(_S, map, key, true, &entry) == false);
 				entry._2->val = value;
 			}
 		} else {
 			for (int i = 0; i < length; i++) {
 				l += keytype->deserial(l, &key);
-				skyc_assert_(Map.gset(_S, map, key, true, &entry) == false);
+				qassert(Map.gset(_S, map, key, true, &entry) == false);
 			}
 		}
 	} else {
@@ -249,14 +244,14 @@ int deserialMap(byte *l, intptr_t *map_ptr) {
 				l += keytype->deserial(l, &key);
 				l += typeType->deserial(l, &valtype);
 				l += valtype->deserial(l, &value);
-				skyc_assert_(Map.gset(_S, map, key, true, &entry) == false);
+				qassert(Map.gset(_S, map, key, true, &entry) == false);
 				entry._1->val = *cast(qobj*, value);
 			}
 		} else {
 			for (int i = 0; i < length; i++) {
 				l += typeType->deserial(l, &keytype);
 				l += keytype->deserial(l, &key);
-				skyc_assert_(Map.gset(_S, map, key, true, &entry) == false);
+				qassert(Map.gset(_S, map, key, true, &entry) == false);
 			}
 		}
 	}
@@ -304,7 +299,7 @@ int deserialList(byte *l, intptr_t *i) {
 			l += deserialStr(l, i);
 			qstr *typename = cast(qstr*, *i);
 			RBNode *node = RB.search(_S->g->userdata, typename);
-			skyc_assert_(node && node->val);
+			qassert(node && node->val);
 			Type type = cast(Type, node->val);
 			list->type = type;
 			for (int k = 0; k < len; k++) {
@@ -366,25 +361,25 @@ int deserialRB(byte *l, intptr_t *i) {
 	int len = readInt32(l);
 	qstr *typename = cast(qstr*, *i);
 	RBNode *node = RB.search(_S->g->userdata, typename);
-	skyc_assert_(node && node->val);
+	qassert(node && node->val);
 	Type typeKey = cast(Type, node->val);
 	int valFlag = readByte(l);
 	if (valFlag) {
 		l += deserialStr(l, i);
 		typename = cast(qstr*, *i);
 		node = RB.search(_S->g->userdata, typename);
-		skyc_assert_(node && node->val);
+		qassert(node && node->val);
 		Type typeVal = cast(Type, node->val);
 		tree = RB.create(typeKey, typeVal);
 		for (int k = 0; k < len; k++) {
 			l += typeKey->deserial(l, &x);
 			l += typeVal->deserial(l, &y);
-			skyc_assert_(RB.insert(tree,x,y,NULL));
+			qassert(RB.insert(tree,x,y,NULL));
 		}
 	} else {
 		for (int k = 0; k < len; k++) {
 			l += typeKey->deserial(l, &x);
-			skyc_assert_(RB.insert(tree,x,NULL,NULL));
+			qassert(RB.insert(tree,x,NULL,NULL));
 		}
 	}
 	*i = tree;
@@ -460,7 +455,7 @@ void initType() {
 		Type t = &typeBase[i];
 		char *name = cast(char*, t->name);
 		t->name = STR.create(name, strlen(name));
-		skyc_assert_(RB.insert(tree,t->name,t,NULL));
+		qassert(RB.insert(tree,t->name,t,NULL));
 	}
 }
 bool destroyType(qstr *name) {
@@ -478,7 +473,7 @@ Type createType(char *name, comparefun compare, hashfun hash,
 	Type t = qmalloc(typeobj);
 	if (name) {
 		t->name = STR.create(name, strlen(name));
-		sky_assert(RB.insert(_S->g->userdata,t->name,t,NULL));
+		qassert(RB.insert(_S->g->userdata,t->name,t,NULL));
 	}
 	t->compare = compare;
 	t->hash = hash;
