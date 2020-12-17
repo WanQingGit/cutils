@@ -1,7 +1,7 @@
-#include <stl/bytelist.h>
-#include "mem.h"
-#include "control.h"
-#include "std/string.h"
+#include "cutils/stl/bytelist.h"
+#include "cutils/mem.h"
+#include "cutils/control.h"
+#include "cutils/std/string.h"
 #include <string.h>
 #define MAXFREELIST 64
 #define DEFAULT_SIZE  8

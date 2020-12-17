@@ -10,7 +10,7 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include "qlibc/object.h"
+#include "cutils/object.h"
 #define Q_MAX(A,B) ({\
 	typeof(A) A_=A;\
 	typeof(B) B_=B;\

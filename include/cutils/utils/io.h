@@ -10,7 +10,7 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include<qlibc/base.h>
+#include<cutils/base.h>
 
 #define writeNormalVar(ptr,n,t) ({\
 	t *_p=cast(t*,ptr);\

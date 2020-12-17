@@ -8,8 +8,8 @@
 #include <stl/map.h>
 #include <time.h>
 #include <std/string.h>
-#include "qlibc/strutils.h"
-#include "qlibc/mem.h"
+#include "cutils/strutils.h"
+#include "cutils/mem.h"
 //MASK_ALPHA	=1 MASK_DIGIT  =2 MASK_PRINT  =4
 //MASK_SPACE  =8 MASK_XDIGIT =16
 #define MKPR MASK_PRINT

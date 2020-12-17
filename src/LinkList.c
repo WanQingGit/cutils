@@ -1,5 +1,5 @@
-#include <qlibc/stl/list.h>
-#include "qlibc/mem.h"
+#include <cutils/stl/list.h>
+#include "cutils/mem.h"
 #define LinkNodeToTail(list, data, node) LinkNodeToPrev(list, data, node->next)
 #define MAXFREELIST 64
 #define MAXFREENODE MAXFREELIST*4

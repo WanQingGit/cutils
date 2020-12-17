@@ -4,10 +4,10 @@
  *  Created on: 2019年2月21日
  *      Author: WanQing
  */
-#include "qlibc/control.h"
-#include "std/string.h"
-#include "qlibc/mem.h"
-#include "stl/map.h"
+#include "cutils/control.h"
+#include "cutils/std/string.h"
+#include "cutils/mem.h"
+#include "cutils/stl/map.h"
 static gl_state qgs = { 0 };
 static State qs = { &qgs };
 State *_S = &qs;

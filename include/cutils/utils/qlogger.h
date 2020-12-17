@@ -10,7 +10,7 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include "qlibc/object.h"
+#include "cutils/object.h"
 
 struct apiLog {
 	qlogger* (*create)(FILE *stream, LogPolicy policy);

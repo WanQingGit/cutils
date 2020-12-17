@@ -10,7 +10,7 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include "qlibc/object.h"
+#include "cutils/object.h"
 
 typedef struct qsetEntry{
 	qobj data;

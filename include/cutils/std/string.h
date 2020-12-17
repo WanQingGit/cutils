@@ -11,8 +11,8 @@
 extern "C"{
 #endif
 
-#include "qlibc/base.h"
-#include "qlibc/object.h"
+#include "cutils/base.h"
+#include "cutils/object.h"
 #include <string.h>
 #define MINSTRTABSIZE	 128
 

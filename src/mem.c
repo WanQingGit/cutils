@@ -5,8 +5,8 @@
  *      Author: WanQing
  */
 #include <stl/map.h>
-#include "qlibc/control.h"
-#include "qlibc/mem.h"
+#include "cutils/control.h"
+#include "cutils/mem.h"
 #include "mem_pool.c"
 #include <string.h>
 

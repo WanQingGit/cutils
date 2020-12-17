@@ -7,7 +7,7 @@
  */
 #include "utils/qlogger.h"
 #include "std/string.h"
-#include "qlibc/mem.h"
+#include "cutils/mem.h"
 #define LOG_BUFSIZE 2048
 static void logger_log(qlogger* logger, char *msg);
 static void log_flush(qlogger* logger);

@@ -1,6 +1,6 @@
 #include <stl/vector.h>
-#include "qlibc/mem.h"
-#include "qlibc/control.h"
+#include "cutils/mem.h"
+#include "cutils/control.h"
 #include "std/string.h"
 #define MAXFREELIST 64
 #define DEFAULT_SIZE  8

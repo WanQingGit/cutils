@@ -5,11 +5,11 @@
  *      Author: WanQing
  */
 
-#include "qlibc/object.h"
+#include "cutils/object.h"
 #include "utils/math.h"
 #include "stl/set.h"
-#include "qlibc/mem.h"
-#include "qlibc/control.h"
+#include "cutils/mem.h"
+#include "cutils/control.h"
 #define gentry2(t,h) (t->entry[(t->capacity-1)&h])
 static void set_resize(State *S, qset *t, unsigned int size) {
 	int oldsize = t->capacity, hash;

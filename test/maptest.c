@@ -5,10 +5,10 @@
  *  Author: WanQing<1109162935@qq.com>
  */
 
-#include "qlibc/stl/map.h"
-#include "qlibc/control.h"
-#include "qlibc/mem.h"
-#include "qlibc/stl/bytelist.h"
+#include "cutils/stl/map.h"
+#include "cutils/control.h"
+#include "cutils/mem.h"
+#include "cutils/stl/bytelist.h"
 #define TESTSIZE 100
 int main() {
 	int i;

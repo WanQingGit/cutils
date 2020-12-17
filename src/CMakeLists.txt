@@ -1,7 +1,7 @@
-aux_source_directory(. QLIBC_SRC)
-list(REMOVE_ITEM QLIBC_SRC ./mem_pool.c)
-message(${QLIBC_SRC})
-include_directories(../include/qlibc)
-add_library(qlibc SHARED ${QLIBC_SRC})
+aux_source_directory(. QCUTILS_SRC)
+list(REMOVE_ITEM QCUTILS_SRC ./mem_pool.c)
+message(${QCUTILS_SRC})
+include_directories(../include/cutils)
+add_library(qcutils SHARED ${QCUTILS_SRC})
 
-target_link_libraries(qlibc m)
+target_link_libraries(qcutils m)

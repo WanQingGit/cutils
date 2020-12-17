@@ -10,8 +10,8 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include"qlibc/object.h"
-#include "qlibc/utils/math.h"
+#include"cutils/object.h"
+#include "cutils/utils/math.h"
 typedef enum {
 #define BIT_ALPHA	0
 	MASK_ALPHA = MASK(BIT_ALPHA),

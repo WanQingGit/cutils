@@ -5,7 +5,7 @@
  *      Author: WanQing
  */
 #include <utils/io.h>
-#include <qlibc/strutils.h>
+#include <cutils/strutils.h>
 
 char *file_read(char *path) {
 	FILE *fp = fopen(path, "r");

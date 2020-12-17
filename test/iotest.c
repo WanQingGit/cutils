@@ -4,11 +4,11 @@
  *  Created on: Jul 7, 2019
  *  Author: WanQing<1109162935@qq.com>
  */
-#include "qlibc/utils//io.h"
-#include "qlibc/prop.h"
-#include "qlibc/std/string.h"
-#include "qlibc/strutils.h"
-#include "qlibc/control.h"
+#include "cutils/utils//io.h"
+#include "cutils/prop.h"
+#include "cutils/std/string.h"
+#include "cutils/strutils.h"
+#include "cutils/control.h"
 int main() {
 //	char temp[]="  \t\nsk \ts,\t\v\n\r ";
 //	char *s=str_trim(temp);

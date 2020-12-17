@@ -5,10 +5,10 @@
  *      Author: WanQing
  */
 #include <stl/map.h>
-#include "qlibc/object.h"
+#include "cutils/object.h"
 #include "utils/math.h"
-#include "qlibc/mem.h"
-#include "qlibc/control.h"
+#include "cutils/mem.h"
+#include "cutils/control.h"
 #define MAP_MINSIZE 4
 #define uentry(t) t->entry
 static void map_resize(State *S, qmap *t, unsigned int size) {

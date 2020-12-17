@@ -4,11 +4,11 @@
  *  Created on: Jul 7, 2019
  *  Author: WanQing<1109162935@qq.com>
  */
-#include "qlibc/prop.h"
+#include "cutils/prop.h"
 #include "utils/io.h"
-#include "qlibc/strutils.h"
+#include "cutils/strutils.h"
 #include "std/string.h"
-#include "qlibc/control.h"
+#include "cutils/control.h"
 qprop *prop_create(char *path, char *sep) {
 	qreader *reader = reader_create(path);
 	RBTree *t = RB.create(typeString, typeString);
