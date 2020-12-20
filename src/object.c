@@ -33,7 +33,7 @@ int deserialType(byte *l, intptr_t *i) {
 	*i = node->val;
 	return diff;
 }
-int cmpInt(INT a, INT b) {
+INT cmpInt(INT a, INT b) {
 	return a - b;
 //	if (b->type == typeInt)
 //		return a - b->val.i;
@@ -60,7 +60,7 @@ char* int2str(qbytes* bytes, INT o) {
 	bytes->length += sprintf(ptr, "%d", o);
 	return ptr;
 }
-int cmpFloat(FLT a, FLT b) {
+INT cmpFloat(FLT a, FLT b) {
 	static FLT eps_0 = 1.0e-6;
 	if (fabs(a - b) < eps_0)
 		return 0;
@@ -111,7 +111,7 @@ char* bool2str(qbytes* bytes, bool o) {
 	bytes->length += 4;
 	return ptr - 4;
 }
-int cmpStr(qstr *a, qstr *b) {
+INT cmpStr(qstr *a, qstr *b) {
 //	if (b->type == typeString)
 	return strcmp(a->val, b->val);
 //	else
@@ -321,7 +321,7 @@ int deserialList(byte *l, intptr_t *i) {
 	return l - ol;
 }
 
-int cmpPtr(intptr_t a, intptr_t b) {
+INT cmpPtr(intptr_t a, intptr_t b) {
 	return a - b;
 }
 uint hashPtr(intptr_t i) {
@@ -443,7 +443,7 @@ const Type typeInt = &typeBase[0],
 //TYPEREG(typeRBTree, RBTree, hashPtr,   NULL,      NULL,        NULL, NULL, NULL, V_RBTREE)
 //TYPEREG(typeThread, thread, hashPtr,   NULL,      NULL,        NULL, NULL, NULL, V_THREAD)
 //TYPEREG(typeNULL,   null,   hashPtr,   NULL,      NULL,        NULL, NULL, NULL, V_NIL)
-static int charcmp(qstr *a, qstr *b) {
+static INT charcmp(qstr *a, qstr *b) {
 	return strcmp(a->val, b->val);
 }
 void initType() {

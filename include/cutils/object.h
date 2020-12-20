@@ -136,12 +136,9 @@ typedef struct stringtable {
     uint size;
 } stringtable;
 typedef struct gc {
-    GCObj *gray; /* list of gray objects */
     GCObj *allgc; /* list of all collectable objects */
     GCObj *protect; /* list of all collectable objects */
     ptrdiff_t GCdebt; /* bytes allocated not yet compensated by the collector */
-    ptrdiff_t GCmemtrav; /* memory traversed by the GC */
-    ptrdiff_t GCestimate; /* an estimate of the non-garbage memory in use */
     byte currentwhite;
 } GC;
 struct longjmp {
@@ -153,7 +150,6 @@ struct longjmp {
 typedef struct glstate {
     GC gc;
     stringtable strt;
-    qstr *strcache[STRCACHE_N][STRCACHE_M];
     RBTree *userdata;
     errfun errf;
     uint seed;

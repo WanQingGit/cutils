@@ -196,7 +196,7 @@ static void rb_postorder(RBTree *tree) {
  */
 static RBNode* rb_nearest(RBTree *tree, rbtype key, rb_flag flag) {
 	RBNode *x = tree->root, *below = NULL, *above = NULL;
-	long res;
+	INT res;
 	while (x) {
 		res = tree->typeKey->compare(key, x->key);
 		if (res == 0) //x->key == key
@@ -238,7 +238,7 @@ static RBNode* rb_nearest(RBTree *tree, rbtype key, rb_flag flag) {
  */
 static RBNode *rb_search(RBTree *tree, rbtype key) {
 	RBNode *x = tree->root;
-	long res;
+	INT res;
 
 	while (x && (res = tree->typeKey->compare(x->key, key)) != 0) {
 		if (res < 0) // key < x->key
@@ -508,7 +508,7 @@ static void rbtree_insert_fixup(RBTree *tree, RBNode *node) {
 static void rbtree_insert(RBTree *tree, RBNode *node) {
 	RBNode *y = NULL;
 	RBNode *x = tree->root;
-	long res;
+	INT res;
 	// 1. 将红黑树当作一颗二叉查找树，将节点添加到二叉查找树中。
 	while (x != NULL) {
 		y = x;

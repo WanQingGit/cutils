@@ -125,21 +125,7 @@ static qstr *gshrstr(State *S, const char *str, size_t l) {
 }
 
 static qstr *string_get(const char *str) {
-    size_t len=strlen(str);
-    uint hash=str_hash_count(str, len, _S->g->seed);
-    uint i = hash & (STRCACHE_N - 1); /* hash */
-    int j;
-    qstr **p = _S->g->strcache[i];
-    for (j = 0; j < STRCACHE_M; j++) {
-        if (/*p[j]->tt&&*/strcmp(str, p[j]->val) == 0) /* hit? */
-            return p[j]; /* that is it */
-    }
-    /* normal route */
-    for (j = STRCACHE_M - 1; j; j--)
-        p[j] = p[j - 1]; /* move out last element */
-    /* new element is first in the list */
-    p[0] = string_new(str, strlen(str));
-    return p[0];
+    return string_new(str, strlen(str));
 }
 
 static qstr *string_new(const char *str, size_t l) {

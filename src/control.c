@@ -43,13 +43,7 @@ void skyc_debug(intptr_t stopCondition) {
 	}
 }
 void initcache() {
-	gl_state *g = _S->g;
 	string_table_resize(_S, MINSTRTABSIZE);
-	qstr *memerrmsg = STR.get(" ");
-	Mem.protect(_S, o2gc(memerrmsg));
-	for (int i = 0; i < STRCACHE_N; i++) /* fill cache with valid strings */
-		for (int j = 0; j < STRCACHE_M; j++)
-			g->strcache[i][j] = memerrmsg;
 }
 extern void initType();
 

@@ -23,7 +23,7 @@ int main() {
 		Map.gset(_S, map, i + 1, true, &entry);
 	}
 	for (i = 0; i < TESTSIZE; i++) {
-		skyc_assert_(Map.gset(_S, map, i + 1, false, &entry) == true);
+		qassert(Map.gset(_S, map, i + 1, false, &entry) == true);
 	}
 	typeMap->serialize(bytes, map);
 	Map.destroy(map, NULL);
@@ -36,10 +36,10 @@ int main() {
 	}
 
 	for (i = 0; i < TESTSIZE; i++) {
-		skyc_assert_(Map.del(_S, map, i + 1, &entry2));
-		skyc_assert_(entry2.key == i + 1);
+    qassert(Map.del(_S, map, i + 1, &entry2));
+    qassert(entry2.key == i + 1);
 	}
-	skyc_assert_(map->length == 0);
+  qassert(map->length == 0);
 
 	Map.destroy(map, NULL);
 
@@ -59,9 +59,9 @@ int main() {
 	typeMap->deserial(bytes->data, &map);
 	for (i = 0; i < TESTSIZE; i++) {
 		Map.del(_S, map, i + 1, &entry2);
-		skyc_assert_(entry2.val == i);
+    qassert(entry2.val == i);
 	}
-	skyc_assert_(map->length == 0);
+  qassert(map->length == 0);
 	Map.destroy(map, NULL);
 	Bytes.destroy(&bytes);
 	CTRL.destroy();
