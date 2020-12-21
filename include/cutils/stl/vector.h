@@ -10,7 +10,7 @@ extern "C"{
 #define ARR_TYPE_FREE 2
 #define arr_type void*
 #define arr_tail(l)  (l)->data[(l)->length-1]
-#define arr_data(l,t,i) cast(t,l->data[i].p)
+#define arr_data(l,t,i) cast(t,l->next[i].p)
 struct apiVec {
 	qvec (*create)(int cap);
 	qvec (*clone)(qvec list);

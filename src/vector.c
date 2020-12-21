@@ -18,9 +18,9 @@ static qvec list_create(int cap) {
 		l = free_list[numfreelist];
 		l->length = 0;
 	} else {
-		l = (qvec) Mem.alloc(_S, NULL, 0, sizeof(struct qvector));
+		l = (qvec) Mem.alloc( NULL, 0, sizeof(struct qvector));
 	}
-	l->data = (qval*) Mem.alloc(_S, NULL, 0, sizeof(qval) * cap);
+	l->data = (qval*) Mem.alloc( NULL, 0, sizeof(qval) * cap);
 	l->capacity = cap;
 	return l;
 }
@@ -51,7 +51,7 @@ static qvec list_resize(qvec list, int nsize) {
 		}
 	}
 //	list->data = (qval*) realloc(list->data, sizeof(qval) * nsize);
-	list->data = (qval*) Mem.alloc(_S, list->data, sizeof(qval) * list->capacity,
+	list->data = (qval*) Mem.alloc( list->data, sizeof(qval) * list->capacity,
                                    sizeof(qval) * nsize);
 	list->capacity = nsize;
 	return list;
@@ -175,7 +175,7 @@ static void list_destroy(qvec *list_ptr, void (*destructor)(qval)) {
 	if (destructor) {
 		if (destructor == ARR_FORCE_FREE) {
 			for (int i = 0; i < used; i++)
-				Mem.alloc(_S, data[i].p, sizeof(qval), 0);
+				Mem.alloc( data[i].p, sizeof(qval), 0);
 		} else if (destructor == ARR_TYPE_FREE) {
 			for (int i = 0; i < used; i++)
 				l->type->free(data[i].p);
@@ -184,12 +184,12 @@ static void list_destroy(qvec *list_ptr, void (*destructor)(qval)) {
 				destructor(data[i]);
 		}
 	}
-    Mem.alloc(_S, data, sizeof(qval) * l->capacity, 0);
+    Mem.alloc( data, sizeof(qval) * l->capacity, 0);
 	if (numfreelist < MAXFREELIST) {
 		free_list[numfreelist] = l;
 		numfreelist++;
 	} else {
-		Mem.alloc(_S, l, sizeof(struct qvector), 0);
+		Mem.alloc( l, sizeof(struct qvector), 0);
 	}
 	*list_ptr = NULL;
 	return;
@@ -204,12 +204,12 @@ static qval pop_back(qvec list) {
 	return cast(qval, 0);
 }
 static void list_shrink(qvec list) {
-	list->data = (qval*) Mem.alloc(_S, list->data, sizeof(qval) * list->capacity,
+	list->data = (qval*) Mem.alloc( list->data, sizeof(qval) * list->capacity,
                                    sizeof(qval) * list->length);
 	list->capacity = list->length;
 }
 static qtuple* list_toTuple(qvec list) {
-	qtuple *tuple = (qtuple*) Mem.alloc(_S, NULL, 0,
+	qtuple *tuple = (qtuple*) Mem.alloc( NULL, 0,
                                         sizeof(qval) * list->length + sizeof(qtuple));
 	tuple->length = list->length;
 	for (int i = 0; i < tuple->length; i++) {
@@ -227,7 +227,7 @@ static qvec list_clone(qvec list) {
 }
 void list_cache_clear() {
 	for (int i = 0; i < numfreelist; i++) {
-		Mem.alloc(_S, free_list[i], sizeof(struct qvector), NULL);
+		Mem.alloc( free_list[i], sizeof(struct qvector), NULL);
 	}
 	numfreelist = 0;
 }

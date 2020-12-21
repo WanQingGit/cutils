@@ -22,7 +22,7 @@
 			if(nfreenode>highwater)\
 			highwater=nfreenode;\
 		}else{\
-		Mem.alloc(_S,node,sizeof(RBNode),0);\
+		Mem.alloc(node,sizeof(RBNode),0);\
 	}}while(0)
 #define MAXFREENODE 1024
 #define MAXFREETREE 128
@@ -79,7 +79,7 @@ static RBTree* rb_create(Type typeKey, Type typeVal) {
 	if (nfreetree > 0) {
 		tree = free_trees[--nfreetree];
 	} else
-		tree = Mem.alloc(_S, NULL, NULL, sizeof(RBTree));
+		tree = Mem.alloc( NULL, NULL, sizeof(RBTree));
 	if (typeKey)
 		tree->typeKey = typeKey;
 	else
@@ -563,7 +563,7 @@ static bool rb_insert(RBTree *tree, rbtype key, rbtype val, RBNode** ptr) {
 		node = free_nodes[--nfreenode];
 		*node = nilNode;
 	} else {
-		node = Mem.alloc(_S, NULL, NULL, sizeof(RBNode));
+		node = Mem.alloc( NULL, NULL, sizeof(RBNode));
 	}
 	node->color = BLACK; // 默认为黑色
 	node->key = key;
@@ -824,7 +824,7 @@ static void rb_clear(RBTree *t, void (*destructor)(rbtype, rbtype)) {
 							qfree(node->key);
 						}
 						if (iptr & RB_FREE_VAL) {
-							qfree(node->val);/*Mem.alloc(_S,node->val,1,NULL);*/
+							qfree(node->val);/*Mem.alloc(node->val,1,NULL);*/
 						}
 					} else {
 						if (iptr & RB_FREE_KEY) {
@@ -855,16 +855,16 @@ static void rb_destroy(RBTree **tree_ptr, void (*destructor)(rbtype, rbtype)) {
 	if (nfreetree < MAXFREETREE) {
 		free_trees[nfreetree++] = t;
 	} else
-		Mem.alloc(_S, t, sizeof(RBTree), NULL);
+		Mem.alloc( t, sizeof(RBTree), NULL);
 	*tree_ptr = NULL;
 }
 void rb_cache_clear() {
 	for (int i = 0; i < nfreetree; i++) {
-		Mem.alloc(_S, free_trees[i], sizeof(RBTree), NULL);
+		Mem.alloc( free_trees[i], sizeof(RBTree), NULL);
 	}
 	nfreetree = 0;
 	for (int i = 0; i < nfreenode; i++) {
-		Mem.alloc(_S, free_nodes[i], sizeof(RBNode), NULL);
+		Mem.alloc( free_nodes[i], sizeof(RBNode), NULL);
 	}
 	nfreenode = 0;
 }

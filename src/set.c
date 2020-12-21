@@ -19,7 +19,7 @@ static void set_resize(State *S, qset *t, unsigned int size) {
 	if (sizeht > INT_MAX)
 		qrunerror(S, "table overflow");
 	if (sizeht != oldsize) {
-		t->entry = skym_newvector(S, sizeht, qsetEntry*);
+		t->entry = skym_newvector( sizeht, qsetEntry*);
 		t->capacity = sizeht;
 		for (int i = 0; i < oldsize; i++) {
 			node = oldt[i];
@@ -32,7 +32,7 @@ static void set_resize(State *S, qset *t, unsigned int size) {
 			}
 		}
 		if (oldsize)
-            Mem.alloc(S, oldt, oldsize * sizeof(qsetEntry *), 0);
+            Mem.alloc( oldt, oldsize * sizeof(qsetEntry *), 0);
 	}
 }
 
@@ -41,7 +41,7 @@ static bool set_del(State *S, qset *t, const qobj *key) {
 	qsetEntry *val = gentry2(t, hash);
 	qsetEntry *prev = NULL;
 	while (val) {
-		if (val->data.type->baseType == key->type->baseType && val->data.val.gc == key->val.gc) {
+		if (val->data.type->id == key->type->id && val->data.val.p == key->val.p) {
 			if (prev)
 				prev->next = val->next;
 			else
@@ -63,7 +63,7 @@ static bool set_contain(State *S, qset *t, const qobj *key, bool isAdd) {
 	qsetEntry *entry = gentry2(t, hash);
 	if (key->type->compare) {
 		while (entry) {
-			if (entry->data.val.gc == key->val.gc
+			if (entry->data.val.p == key->val.p
 					|| key->type->compare(key, &entry->data)) {
 				return true;
 			}
@@ -71,7 +71,7 @@ static bool set_contain(State *S, qset *t, const qobj *key, bool isAdd) {
 		}
 	} else {
 		while (entry) {
-			if (entry->data.type == key->type && entry->data.val.gc == key->val.gc) {
+			if (entry->data.type == key->type && entry->data.val.p == key->val.p) {
 				return true;
 			}
 			entry = entry->next;
@@ -82,7 +82,7 @@ static bool set_contain(State *S, qset *t, const qobj *key, bool isAdd) {
 		if (t->length >= t->capacity) {
 			set_resize(S, t, t->capacity * 2);
 		}
-		entry = (qsetEntry*) Mem.alloc(S, NULL, 0, sizeof(qsetEntry));
+		entry = (qsetEntry*) Mem.alloc( NULL, 0, sizeof(qsetEntry));
 		entry->data = *key;
 		entry->next = gentry2(t, hash);
 		++t->length;

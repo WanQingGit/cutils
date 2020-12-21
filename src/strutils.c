@@ -60,7 +60,7 @@ uint makeseed(State *S) {
 	return str_hash_count(cast(char *, buff), 2 * sizeof(char*), h);
 }
 
-uint str_hash_count(char *str, size_t l, uint seed) {
+size_t str_hash_count(const char *str, size_t l, uint seed) {
 	unsigned int h = seed ^ cast(uint, l); //Times33
 	size_t step = (l >> HASHLIMIT) + 1;
 	for (; l >= step; l -= step)

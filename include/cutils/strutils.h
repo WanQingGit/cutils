@@ -39,7 +39,7 @@ extern const typechar char_type[];
 #define is_newline(c) ({char _c=(c);(_c=='\n'||_c=='\r');})
 #define EOZ	(-1)
 #define nextchar(p) (*++p)
-uint str_hash_count(char *str, size_t l, uint seed);
+size_t  str_hash_count(const char *str, size_t l, uint seed);
 char *str_trim(char *s);
 char* skip_empty(char* s);
 char* str_rtrim(char* s);
@@ -49,7 +49,6 @@ char* strip(char* s);
 char* backspace(char* s, char** cursor);
 void *qmemcpy(void *dst, const void *src, size_t num);
 char skip_space(char** s);
-//qstr *skys_new(State *L, const char *str, size_t l);
 
 uint makeseed(State *S);
 //qstr *string_get(State *S, const char *str);

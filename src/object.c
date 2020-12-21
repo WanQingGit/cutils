@@ -17,9 +17,6 @@
 //TYPEDEFINE
 void serialStr(qbytes *l, qstr *s);
 
-uint hashType(Type type) {
-	return STR.get(type->name)->hash;
-}
 void serialType(qbytes *l, Type o) {
 	serialStr(l, o->name);
 }
@@ -29,7 +26,7 @@ int deserialType(byte *l, intptr_t *i) {
 	int diff = deserialStr(l, &s);
 //	l += diff;
 	qentry entry;
-	RBNode *node = RB.search(_S->g->userdata, s);
+	RBNode *node = RB.search(_S->g->typeinfos, s);
 	*i = node->val;
 	return diff;
 }
@@ -41,7 +38,7 @@ INT cmpInt(INT a, INT b) {
 //		return cmpFloat(cast(FLT, a), b);
 //	return -1;
 }
-uint hashInt(INT o) {
+size_t hashInt(INT o) {
 	return o;
 }
 
@@ -67,8 +64,8 @@ INT cmpFloat(FLT a, FLT b) {
 	return a > b ? 1 : -1;
 }
 
-uint hashFloat(const INT o) {
-	return cast(uint, o);
+size_t hashFloat(const INT o) {
+	return cast(size_t, o);
 }
 
 void serialFlt(qbytes *bytes, FLT o) {
@@ -88,7 +85,7 @@ char* flt2str(qbytes* bytes, FLT o) {
 	return ptr;
 }
 
-uint hashBool(const qobj *o) {
+size_t hashBool(const qobj *o) {
 	return o->val.i ? 1 : 0;
 }
 
@@ -112,12 +109,9 @@ char* bool2str(qbytes* bytes, bool o) {
 	return ptr - 4;
 }
 INT cmpStr(qstr *a, qstr *b) {
-//	if (b->type == typeString)
 	return strcmp(a->val, b->val);
-//	else
-//		return -1;
 }
-uint hashStr(const qstr *o) {
+size_t hashStr(const qstr *o) {
 	return o->hash;
 }
 void serialStr(qbytes *l, qstr *s) {
@@ -135,6 +129,7 @@ int deserialStr(byte *l, intptr_t *i) {
 	readBytes(val, l, len + 1);
 	qstr *s = STR.create(val, len);
 	*i = s;
+  qfree(val);
 	return l - ol;
 }
 char* str2str(qbytes* bytes, qstr *o) {
@@ -178,25 +173,25 @@ void serialMap(qbytes *bytes, qmap *map) {
 	if (keytype) {
 		if (valtype) {
 			while (Map.next(&iter)) {
-				keytype->serialize(bytes, iter.entry._2->key);
-				valtype->serialize(bytes, iter.entry._2->val);
+				keytype->serialize(bytes, iter.entry.dict->key);
+				valtype->serialize(bytes, iter.entry.dict->val);
 			}
 		} else {
 			while (Map.next(&iter)) {
-				keytype->serialize(bytes, iter.entry._2->key);
+				keytype->serialize(bytes, iter.entry.dict->key);
 			}
 		}
 	} else {
 		if (map->type & MAP_TABLE) {
 			while (Map.next(&iter)) {
-				qobj *key = &iter.entry._1->key;
-				qobj *val = &iter.entry._1->val;
+				qobj *key = iter.entry.dict->key;
+				qobj *val = iter.entry.dict->val;
 				key->type->serialize(bytes, key->val.i);
 				val->type->serialize(bytes, val->val.i);
 			}
 		} else {
 			while (Map.next(&iter)) {
-				qobj *key = &iter.entry._1->key;
+				qobj *key = &iter.entry.dict->key;
 				key->type->serialize(bytes, key->val.i);
 			}
 		}
@@ -213,14 +208,14 @@ int deserialMap(byte *l, intptr_t *map_ptr) {
 	if (typeflag) {
 		l += typeType->deserial(l, &keytype);
 	}
-	qmap *map = Map.create(_S, keytype, type & MAP_TABLE);
+	qmap *map = Map.create(keytype, type & MAP_TABLE);
 	*map_ptr = map;
 	typeflag = readByte(l);
 	if (typeflag) {
 		l += typeType->deserial(l, &valtype);
 		map->valtype = valtype;
 	}
-	Map.resize(_S, map, size);
+	Map.resize(map, size);
 	INT key, value;
 	qentry entry;
 	if (keytype) {
@@ -228,13 +223,13 @@ int deserialMap(byte *l, intptr_t *map_ptr) {
 			for (int i = 0; i < length; i++) {
 				l += keytype->deserial(l, &key);
 				l += valtype->deserial(l, &value);
-				qassert(Map.gset(_S, map, key, true, &entry) == false);
-				entry._2->val = value;
+				qassert(Map.gset(map, key, true, &entry) == false);
+				entry.dict->val = value;
 			}
 		} else {
 			for (int i = 0; i < length; i++) {
 				l += keytype->deserial(l, &key);
-				qassert(Map.gset(_S, map, key, true, &entry) == false);
+				qassert(Map.gset(map, key, true, &entry) == false);
 			}
 		}
 	} else {
@@ -244,14 +239,14 @@ int deserialMap(byte *l, intptr_t *map_ptr) {
 				l += keytype->deserial(l, &key);
 				l += typeType->deserial(l, &valtype);
 				l += valtype->deserial(l, &value);
-				qassert(Map.gset(_S, map, key, true, &entry) == false);
-				entry._1->val = *cast(qobj*, value);
+				qassert(Map.gset(map, key, true, &entry) == false);
+				entry.dict->val = value;
 			}
 		} else {
 			for (int i = 0; i < length; i++) {
 				l += typeType->deserial(l, &keytype);
 				l += keytype->deserial(l, &key);
-				qassert(Map.gset(_S, map, key, true, &entry) == false);
+				qassert(Map.gset(map, key, true, &entry) == false);
 			}
 		}
 	}
@@ -298,7 +293,7 @@ int deserialList(byte *l, intptr_t *i) {
 		if (typeFlag) {
 			l += deserialStr(l, i);
 			qstr *typename = cast(qstr*, *i);
-			RBNode *node = RB.search(_S->g->userdata, typename);
+			RBNode *node = RB.search(_S->g->typeinfos, typename);
 			qassert(node && node->val);
 			Type type = cast(Type, node->val);
 			list->type = type;
@@ -360,14 +355,14 @@ int deserialRB(byte *l, intptr_t *i) {
 	l += deserialStr(l, i);
 	int len = readInt32(l);
 	qstr *typename = cast(qstr*, *i);
-	RBNode *node = RB.search(_S->g->userdata, typename);
+	RBNode *node = RB.search(_S->g->typeinfos, typename);
 	qassert(node && node->val);
 	Type typeKey = cast(Type, node->val);
 	int valFlag = readByte(l);
 	if (valFlag) {
 		l += deserialStr(l, i);
 		typename = cast(qstr*, *i);
-		node = RB.search(_S->g->userdata, typename);
+		node = RB.search(_S->g->typeinfos, typename);
 		qassert(node && node->val);
 		Type typeVal = cast(Type, node->val);
 		tree = RB.create(typeKey, typeVal);
@@ -396,20 +391,16 @@ int deserialRB(byte *l, intptr_t *i) {
 		 type->toString=strf;\*/
 // @formatter:off
 static typeobj typeBase[] = {
-{ "<int>",      cmpInt,    hashInt,   serialInt, deserialInt, int2str,  NULL, V_NUMINT }, //0
-{ "<float>",    cmpFloat,  hashFloat, serialFlt, deserialFlt, flt2str,  NULL, V_NUMFLT }, //1
-{ "<bool>",     cmpInt,    hashBool,  serialBool,deserialBool,bool2str, NULL, V_BOOL }, //2
-{ "<string>",   cmpStr,    hashStr,   serialStr, deserialStr, str2str,  NULL, V_SHRSTR }, //3
-{ "<map>",      NULL,      hashMap,   serialMap, deserialMap,	NULL,     NULL, V_TABLE }, //4
-{ "<list>",     NULL,      hashList,  serialList,deserialList,NULL,     NULL, V_ARRAY }, //5
-{ "<module>",   cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_MODULE }, //6
-{ "<cfunction>",cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_LCF }, //7
-{ "<cclosure>", cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_CCL }, //8
-{ "<function>", cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_LCL }, //9
-{ "<RBTree>",   cmpPtr,    hashPtr,   serialRB,  deserialRB,  NULL,     NULL, V_RBTREE }, //10
-{ "null",       cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_NIL }, //11
-{ "<thread>",   cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_THREAD}, //12
-{ "<type>",     cmpPtr,    hashPtr,   serialType,deserialType,NULL,     NULL, V_TYPE} //13
+{       cmpInt,    hashInt,   serialInt, deserialInt, int2str,  NULL, V_NUMINT ,"<int>",}, //0
+{   cmpFloat,  hashFloat, serialFlt, deserialFlt, flt2str,  NULL, V_NUMFLT ,"<float>" }, //1
+{      cmpInt,    hashBool,  serialBool,deserialBool,bool2str, NULL, V_BOOL ,"<bool>",}, //2
+{    cmpStr,    hashStr,   serialStr, deserialStr, str2str,  NULL, V_STR ,"<string>",}, //3
+{       NULL,      hashMap,   serialMap, deserialMap,	NULL,     NULL, V_TABLE ,"<map>",}, //4
+{      NULL,      hashList,  serialList,deserialList,NULL,     NULL, V_ARRAY ,"<list>",}, //5
+{  cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_FUNCTION ,"<function>"}, //6
+{    cmpPtr,    hashPtr,   serialRB,  deserialRB,  NULL,     NULL, V_RBTREE ,"<RBTree>"}, //7
+{        cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_NIL ,"null",}, //8
+{     cmpPtr,    hashPtr,   serialType,deserialType,NULL,     NULL, V_TYPE,"<type>"} //9
 };
 
 const Type typeInt = &typeBase[0],
@@ -418,14 +409,10 @@ const Type typeInt = &typeBase[0],
 					 typeString = &typeBase[3],
 					 typeMap = &typeBase[4],
 					 typeList =&typeBase[5],
-					 typeModule = &typeBase[6],
-					 typeCFun = &typeBase[7],
-					 typeCClosure = &typeBase[8],
-					 typeClosure = &typeBase[9],
-					 typeRBTree =&typeBase[10],
-					 typeNULL = &typeBase[11],
-					 typeThread=&typeBase[12],
-					 typeType=&typeBase[13];
+					 typeCFun = &typeBase[6],
+					 typeRBTree =&typeBase[7],
+					 typeNULL = &typeBase[8],
+					 typeType=&typeBase[9];
 // @formatter:on
 //#define TYPEREG(type,name,hashfun,serial,deserial,comparef,strf,freef,base) \
 //  static typeobj _##type={"<"#name">",hashfun,serial,deserial,comparef,strf,freef,base};\
@@ -433,7 +420,7 @@ const Type typeInt = &typeBase[0],
 //TYPEREG(typeInt, 		int,    hashInt,   serialInt, deserialInt, NULL, NULL, NULL, V_NUMINT)
 //TYPEREG(typeFloat,  float,  hashFloat, serialFlt, deserialFlt, NULL, NULL, NULL, V_NUMFLT)
 //TYPEREG(typeBool,   bool,   hashBool,  serialBool,deserialBool,NULL, NULL, NULL, V_BOOL)
-//TYPEREG(typeString, string, hashStr,   serialStr, deserialStr, NULL, NULL, NULL, V_SHRSTR)
+//TYPEREG(typeString, string, hashStr,   serialStr, deserialStr, NULL, NULL, NULL, V_STR)
 //TYPEREG(typeMap,    map,    hashMap,   NULL,		  NULL,		     NULL, NULL, NULL, V_TABLE)
 //TYPEREG(typeList,   list,   hashList,  serialList,deserialList,NULL, NULL, NULL, V_ARRAY)
 //TYPEREG(typeModule, module, hashPtr,   NULL,      NULL,        NULL, NULL, NULL, V_MODULE)
@@ -450,30 +437,29 @@ void initType() {
 	int len = sizeof(typeBase) / sizeof(typeBase[0]);
 	Type cmp = typeCompare(charcmp);
 	RBTree* tree = RB.create(cmp, NULL);
-	_S->g->userdata = tree;
+	_S->g->typeinfos = tree;
 	for (int i = 0; i < len; i++) {
 		Type t = &typeBase[i];
-		char *name = cast(char*, t->name);
-		t->name = STR.create(name, strlen(name));
-		qassert(RB.insert(tree,t->name,t,NULL));
+//		char *name = cast(char*, t->name);
+//		t->name = STR.create(name, strlen(name));
+		qassert(RB.insert(tree,(rbtype)t->id,t,NULL));
 	}
 }
 bool destroyType(qstr *name) {
-	RBNode *node = RB.search(_S->g->userdata, name);
+	RBNode *node = RB.search(_S->g->typeinfos, name);
 	if (node == NULL)
 		return false;
 	Type t = cast(Type, node->val);
-	RB.delNode(_S->g->userdata, node);
+	RB.delNode(_S->g->typeinfos, node);
 	qfree(t);
 	return true;
 }
 Type createType(char *name, comparefun compare, hashfun hash,
 		serialfun serialize, deserialfun deserial, o2strfun toString, freefun free,
-		qtype baseType) {
+		size_t typeid) {
 	Type t = qmalloc(typeobj);
 	if (name) {
-		t->name = STR.create(name, strlen(name));
-		qassert(RB.insert(_S->g->userdata,t->name,t,NULL));
+		qassert(RB.insert(_S->g->typeinfos,t->name,t,NULL));
 	}
 	t->compare = compare;
 	t->hash = hash;
@@ -481,6 +467,6 @@ Type createType(char *name, comparefun compare, hashfun hash,
 	t->deserial = deserial;
 	t->toString = toString;
 	t->free = free;
-	t->baseType = baseType;
+	t->id = typeid;
 	return t;
 }

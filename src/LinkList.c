@@ -8,7 +8,7 @@
 			free_node[numfreenode] = node; \
 			numfreenode++;	\
 			} else	\
-			Mem.alloc(_S, node, sizeof(*node), 0);
+			Mem.alloc( node, sizeof(*node), 0);
 static qlist free_list[MAXFREELIST];
 static lNode free_node[MAXFREENODE];
 static int numfreelist = 0;
@@ -37,7 +37,7 @@ static qlist link_create() {
 		numfreelist--;
 		l = free_list[numfreelist];
 	} else {
-		l = (qlist) Mem.alloc(_S, NULL, 0, sizeof(struct linklist));
+		l = (qlist) Mem.alloc( NULL, 0, sizeof(struct linklist));
 	}
 	l->length = 0;
 	l->head = ll_iter(l);
@@ -129,7 +129,7 @@ static lNode link_newnode(qlist l, void* data) {
 		numfreenode--;
 		node = free_node[numfreenode];
 	} else {
-		node = (lNode) Mem.alloc(_S, NULL, 0, sizeof(struct lnode));
+		node = (lNode) Mem.alloc( NULL, 0, sizeof(struct lnode));
 	}
 	node->data = data;
 	return node;
@@ -162,7 +162,7 @@ static void link_destroy(qlist *list_ptr, void (*destructor)(void*)) {
 		free_list[numfreelist] = l;
 		numfreelist++;
 	} else {
-		Mem.alloc(_S, l, sizeof(*l), 0);
+		Mem.alloc( l, sizeof(*l), 0);
 	}
 	*list_ptr = NULL;
 }
@@ -193,11 +193,11 @@ static qlist link_addArray(qlist l, intptr_t *data, int n) {
 }
 void link_cache_clear() {
 	for (int i = 0; i < numfreelist; i++) {
-		Mem.alloc(_S, free_list[i], sizeof(struct linklist), NULL);
+		Mem.alloc( free_list[i], sizeof(struct linklist), NULL);
 	}
 	numfreelist = 0;
 	for (int i = 0; i < numfreenode; i++) {
-		Mem.alloc(_S, free_node[i], sizeof(lnode), NULL);
+		Mem.alloc( free_node[i], sizeof(lnode), NULL);
 	}
 	numfreenode = 0;
 }

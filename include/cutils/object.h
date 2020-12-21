@@ -22,40 +22,31 @@ typedef enum {
 /*type of variable*/
 typedef enum {
     V_NIL,
-    V_LCL,
-    V_LCF,
-    V_CCL,
-    V_SHRSTR,
-    V_LNGSTR,
+    V_FUNCTION,
+    V_STR,
     V_NUMFLT,
     V_NUMINT,
     V_BOOL,
-    V_USERDATA,
     V_TABLE,
-    V_SET,
     V_ARRAY,
-    V_CLASS,
-    V_THREAD,
-    V_MODULE,
     V_RBTREE,
-    V_TYPE
+    V_TYPE,
+    V_USERDATA,
 } qtype;
-#define HASHMASK (~((uint)0))
+#define HASHMASK (~((size_t)0))
 typedef struct qhashMap qmap;
 typedef struct qobj qobj;
 typedef struct qvector *qvec;
 typedef struct qstr qstr;
 typedef struct qbytes qbytes;
-#define GCHead
-//#define GCHead	struct GCObj *next; qtype tt:8; byte marked:8
-//#define STATEHEAD gl_state* g;struct qstate *up;struct longjmp *errorJmp;errfun errf
 #define OBJ(v, t) {{cast(void*,v)},t}
 
 #define o2gc(o) (cast(GCObj*,o)-1)
+#define incr_ref(o) o2gc(o)->nref++
 
 typedef void *(*errfun)(void *u, errcode code, char *msg);
 
-typedef uint (*hashfun)(const qobj *o);
+typedef size_t (*hashfun)(const qobj *o);
 
 typedef void (*serialfun)(qbytes *l, void *o);
 
@@ -69,14 +60,14 @@ typedef void (*freefun)(qobj *o);
 
 #define sizearr(x) (1<<(x))
 typedef struct typeobj {
-    qstr *name;
     comparefun compare; //同类型比较函数
     hashfun hash;
     serialfun serialize;
     deserialfun deserial;
     o2strfun toString;
     freefun free;
-    qtype baseType: 8;
+    size_t id;
+    char name[16];
 } typeobj, *Type;
 //extern const  uint HASHMASK = -1;
 #define TYPEDEFINE \
@@ -104,22 +95,20 @@ typedef struct RBNode {
 typedef struct RBTree {
     Type typeKey;
     Type typeVal;
-//	comparef cmmpare;
     RBNode *root;
     int length;
     bool multi: 8;
 } RBTree;
 typedef struct GCObj {
-    struct GCObj *data;
-    qtype tt: 8;
-    byte marked: 8;
+    struct GCObj *next;
+    ssize_t nref;
+    typeobj *type;
+    ssize_t size;
 } GCObj;
 struct qstr {
-    GCHead
     struct qstr *hnext;
+    size_t hash;
     int len;
-    uint hash;
-    int info;
     char val[];
 };
 
@@ -139,7 +128,6 @@ typedef struct gc {
     GCObj *allgc; /* list of all collectable objects */
     GCObj *protect; /* list of all collectable objects */
     ptrdiff_t GCdebt; /* bytes allocated not yet compensated by the collector */
-    byte currentwhite;
 } GC;
 struct longjmp {
     struct longjmp *prev;
@@ -150,7 +138,7 @@ struct longjmp {
 typedef struct glstate {
     GC gc;
     stringtable strt;
-    RBTree *userdata;
+    RBTree *typeinfos;
     errfun errf;
     uint seed;
 } gl_state;
@@ -162,7 +150,6 @@ typedef struct qstate {
 } State;
 
 typedef union qval {
-    GCObj *gc;
     void *p;
     qmap *t;
     qvec arr;
@@ -174,40 +161,47 @@ typedef union qval {
     float flt32;
 } qval;
 typedef struct qobj {
-    qval val;
     typeobj *type;
+    qval val;
 } qobj;
 /**
- * qentry2,4用于节省内存，使用keytype保存类型
+ * qentry_dict,4用于节省内存，使用keytype保存类型
  * qentry1,2,3,4的next和key的位置一定要一致
  * 不一致遍历会出错
  * 1,2用于map,3,4用于set
  * qentry的key除非能保证hash和compare和原key相同
  * 不然一定不要更改，切记！
  */
-typedef struct qentry1 {
-    struct qentry1 *next;
-    qobj key;
-    qobj val;
-} qentry1;
+ /**
+  * deprecated
+  * 没有必要存储类型信息
+  */
+//typedef struct qentry1 {
+//    struct qentry1 *next;
+//    qobj key;
+//    qobj val;
+//} qentry1;
 
-typedef struct qentry2 {
-    struct qentry2 *next;
+//typedef struct qentry3 {
+//    struct qentry3 *next;
+//    qobj key;
+//} qentry3;
+
+typedef struct qentry_dict {
+    struct qentry_dict *next;
     qobj *key;
     qobj *val;
-} qentry2;
-typedef struct qentry3 {
-    struct qentry3 *next;
-    qobj key;
-} qentry3;
+} qentry_dict;
 
-typedef struct qentry4 {
-    struct qentry4 *next;
+
+typedef struct qentry_set {
+    struct qentry_set *next;
     qobj *key;
-} qentry4;
+} qentry_set;
 typedef union qentry {
-    qentry1 *_1;
-    qentry2 *_2;
+//    qentry1 *_1;
+    qentry_set *set;
+    qentry_dict *dict;
 } qentry;
 /**
  * 第一位用于判断是否是table
@@ -215,11 +209,13 @@ typedef union qentry {
  * map创建后不要修改该值
  */
 typedef enum {
-    MAP_SET = 0, MAP_TABLE = 1, MAP_OBJTYPE = 2
+    MAP_SET = 0, MAP_TABLE = 1, MAP_OBJTYPE = 2,MAP_FREE_VAL=4,MAP_FREE_KEY=8,MAP_FREE_FORCE=16
 } MapType;
 /**
  * 当存放的对象不是qobj对象时，使用keytype来实现增删改查
- * map一旦创建，keytype不能修改，valtype可修改
+ * map一旦创建，keytype不能修改，valtype可修改,所以keytype不可见
+ * keytype不为null,则插入的key必须满足该类型，插入的值是原生不带类型的。
+ * keytype为null,则值必须带类型。
  * valtype用于序列化，仅当keytype存在时有效
  */
 struct qhashMap {
@@ -231,13 +227,11 @@ struct qhashMap {
 #ifdef QDEBUG
     uint nfilled;
 #endif
-//	byte nmeta;
-//	qmap *meta[];
 };
-typedef struct qdict {
-    qmap ht[2];
-    byte state;
-} qdict;
+//typedef struct qdict {
+//    qmap ht[2];
+//    byte state;
+//} qdict;
 extern qobj nilobj;
 
 typedef int (*qfunc)(State *S, int argc, int resc);
@@ -276,7 +270,7 @@ extern State *_S;
 
 Type createType(char *name, comparefun compare, hashfun hash,
                 serialfun serialize, deserialfun deserial, o2strfun toString, freefun free,
-                qtype baseType);
+                size_t baseType);
 
 bool destroyType(qstr *name);
 

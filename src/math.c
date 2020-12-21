@@ -30,12 +30,12 @@ int ceillog2(unsigned int x) {
 }
 static uint hash_mask=-1;
 uint sky_hash(const qobj *o) {
-	switch (o->type->baseType) {
+	switch (o->type->id) {
 		case V_BOOL:
 			return o->val.i != 0;
 		case V_NUMINT:
 			return o->val.i;
-		case V_SHRSTR:
+		case V_STR:
 			return o->val.s->hash;
 		case V_NUMFLT:
 			return cast(uint, o->val.flt);

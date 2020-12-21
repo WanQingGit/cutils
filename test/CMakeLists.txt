@@ -21,5 +21,8 @@ target_link_libraries(map_test qcutils)
 add_executable(rbtree_test rbtreeTest.c)
 target_link_libraries(rbtree_test qcutils)
 
+add_executable(qstr_test strtest.c)
+target_link_libraries(qstr_test qcutils)
+
 
 

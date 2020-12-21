@@ -15,7 +15,7 @@ static void log_flush(qlogger* logger);
 		if (logger->policy & LOG_CONSOLE)\
 			fprintf(stdout, logger->buf.val)
 static qlogger* log_create(FILE *stream, LogPolicy policy) {
-	qlogger *logger = cast(qlogger *, Mem.alloc(_S, NULL, 0, sizeof(qlogger)));
+	qlogger *logger = cast(qlogger *, Mem.alloc( NULL, 0, sizeof(qlogger)));
 	logger->stream = stream;
 	logger->cachesize = LOG_BUFSIZE;
 	logger->policy = policy;
@@ -23,7 +23,7 @@ static qlogger* log_create(FILE *stream, LogPolicy policy) {
 }
 static qlogger* log_createByPath(char *path) {
 	FILE *fp = fopen(path, "w");
-	qlogger *logger = cast(qlogger *, Mem.alloc(_S, NULL, 0, sizeof(qlogger)));
+	qlogger *logger = cast(qlogger *, Mem.alloc( NULL, 0, sizeof(qlogger)));
 	logger->cachesize = LOG_BUFSIZE;
 	logger->policy = LOG_NORMAL;
 	logger->stream = fp;
@@ -39,7 +39,7 @@ static void log_destroy(qlogger* logger) {
 	}
 	fclose(logger->stream);
 	qfree(logger->buf.val);
-	Mem.alloc(_S, logger, sizeof(qlogger), 0);
+	Mem.alloc( logger, sizeof(qlogger), 0);
 }
 
 static void logger_log(qlogger* logger, char *msg) {

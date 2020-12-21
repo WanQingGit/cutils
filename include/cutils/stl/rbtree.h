@@ -12,7 +12,7 @@ extern "C" {
 #endif
 #include "cutils/object.h"
 
-typedef intptr_t rbtype;
+typedef void* rbtype;
 typedef struct rbData {
 	rbtype key;                    // 关键字(键值)
 	rbtype val;

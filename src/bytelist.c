@@ -15,11 +15,11 @@ static qbytes *bytes_create(int datasize) {
 		numfreelist--;
 		l = free_list[numfreelist];
 	} else {
-		l = (qbytes*) Mem.alloc(_S, NULL, 0, sizeof(struct qbytes));
+		l = (qbytes*) Mem.alloc( NULL, 0, sizeof(struct qbytes));
 	}
 	if (datasize < 1)
 		datasize = 1;
-	l->data = (byte*) Mem.alloc(_S, NULL, 0, datasize * DEFAULT_SIZE);
+	l->data = (byte*) Mem.alloc( NULL, 0, datasize * DEFAULT_SIZE);
 	l->length = 0;
 	l->datasize = datasize;
 	l->capacity = DEFAULT_SIZE;
@@ -52,7 +52,7 @@ static qbytes *bytes_resize(qbytes *list, int nsize) {
 		}
 	}
 	int unitsize = sizeof(byte) * list->datasize;
-	list->data = (byte*) Mem.alloc(_S, list->data,
+	list->data = (byte*) Mem.alloc( list->data,
 			unitsize * list->capacity, unitsize * nsize);
 	list->capacity = nsize;
 	return list;
@@ -127,12 +127,12 @@ static qbytes *bytes_addFromVec(qbytes *list, qbytes *a) {
  ***/
 static void bytes_destroy(qbytes **bytes_ptr) {
 	qbytes *l = *bytes_ptr;
-	Mem.alloc(_S, l->data, sizeof(byte) * l->datasize * l->capacity, 0);
+	Mem.alloc( l->data, sizeof(byte) * l->datasize * l->capacity, 0);
 	if (numfreelist < MAXFREELIST) {
 		free_list[numfreelist] = l;
 		numfreelist++;
 	} else {
-		Mem.alloc(_S, l, sizeof(qbytes), 0);
+		Mem.alloc( l, sizeof(qbytes), 0);
 	}
 	*bytes_ptr = NULL;
 	return;
@@ -147,14 +147,14 @@ static byte* pop_back(qbytes *list) {
 	return NULL;
 }
 static void bytes_shrink(qbytes *list) {
-	list->data = (byte*) Mem.alloc(_S, list->data,
+	list->data = (byte*) Mem.alloc( list->data,
 			sizeof(byte) * list->datasize * list->capacity,
 			sizeof(byte) * list->datasize * list->length);
 	list->capacity = list->length;
 }
 void bytes_cache_clear() {
 	for (int i = 0; i < numfreelist; i++) {
-		Mem.alloc(_S, free_list[i], sizeof(struct qbytes), NULL);
+		Mem.alloc( free_list[i], sizeof(struct qbytes), NULL);
 	}
 	numfreelist = 0;
 }

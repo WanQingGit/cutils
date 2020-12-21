@@ -13,8 +13,6 @@ extern "C"{
 #include "cutils/object.h"
 
 #define MAP_NOT_FREE 0
-#define MAP_FREE_KEY 1
-#define MAP_FREE_VAL 1<<1
 #define MAP_FREE_FORCE 1<<2
 #define MAP_FREE_BOTH MAP_FREE_KEY|MAP_FREE_VAL
 #define MAP_FREE_MAX  MAP_FREE_BOTH|MAP_FREE_FORCE
@@ -24,7 +22,7 @@ extern "C"{
 #define gkey(n)		(&(n)->key)
 #define gentry(t,h) (t->entry[(t->size-1)&h])
 #define gentry1(t,h) gentry(t,h)._1
-#define gentry2(t,h) gentry(t,h)._2
+#define gentry2(t,h) gentry(t,h).dict
 //#define gentry(t,h) (t->table+(t->size-1)&h)
 #define gnext(n)	((n)->next)
 #define gval(n)		(&(n)->val)
@@ -35,6 +33,7 @@ extern "C"{
 	qobj _o=OBJ(key,typeString);skyt_gset(S,t,&_o,v); \
 })
 #define map_keytype(t) *cast(Type*,cast(qmap *,t)+1)
+//#define map_keytype(t) ((t)->keytype)
 typedef struct mapIter {
 	qmap *m;
 	Type keytype;
@@ -46,8 +45,8 @@ typedef struct mapIter {
 //	MAP_UPDATE, MAP_GET, MAP_GSET
 //} MapMode;
 struct apiMap {
-	qmap* (*create)(State *S, Type keytype, bool isTable);
-	void (*resize)(State *S, qmap *t, uint size);
+	qmap* (*create)(Type keytype, bool isTable);
+	void (*resize)(qmap *t, size_t size);
 	/**
 	 * 获取map中key的值，
 	 * 不存在根据参数mode是否插入
@@ -58,13 +57,13 @@ struct apiMap {
 	 * 返回值：
 	 * 		如果键值存在，返回true,不存在返回false
 	 */
-	bool (*gset)(State *S, qmap *t, const qobj *key, bool insert, qentry *res);
+	bool (*gset)(qmap *t, const void *key, bool insert, qentry *res);
 //	qentry (*gset)(State *S, qmap *t, const qobj *key, bool isert);
-	bool (*del)(State *S, qmap *t, const qobj *key, qentry2 *res);
+	bool (*del)(qmap *t, const void *key, qentry_dict *res);
 //	bool (*del)(State *S, qmap *t, const qobj *key, qobj *keyval);
 	void (*iterator)(qmap *t, mapIter *iter);
 	bool (*next)(mapIter *iter);
-	void (*destroy)(qmap *map, int freeMode);
+	void (*destroy)(qmap *map);
 };
 
 extern struct apiMap Map;

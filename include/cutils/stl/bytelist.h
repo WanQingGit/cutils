@@ -19,7 +19,7 @@ if((l)->length+(n)>(l)->capacity){ \
 #define Bytes_push(l,n,t) ({\
 		checksize(l,n);l->length+=n;Bytes_get(l,l->length-n,t);})
 #define correctLen(l,ptr) \
-		qassert((ptr-l->data)%l->datasize)\
+		qassert((ptr-l->next)%l->datasize)\
 		l->length=(ptr-l->data)/l->datasize
 struct apiBytes {
 	//初始化链表

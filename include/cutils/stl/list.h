@@ -3,7 +3,7 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include "cutils/base.h"
+#include "cutils/object.h"
 #include "stdint.h"
 #define ll_tail(l) l->tail
 #define ll_head(l) l->head
@@ -29,6 +29,7 @@ typedef struct lnode {
 typedef struct linklist {
 	struct lnode *head;
 	struct lnode *tail; //指向当前结点的上一结点
+	Type type;
 	intptr_t length; //链表list的长度
 }*qlist;
 
