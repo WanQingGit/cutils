@@ -3,6 +3,8 @@
  *
  *  Created on: Apr 11, 2019
  *  Author: WanQing<1109162935@qq.com>
+ *
+ *  定制的string常量池比使用hashmap效率要高
  */
 
 #include <std/string.h>
@@ -167,6 +169,10 @@ static qstr *newstr(size_t l, unsigned int h,
   return ts;
 }
 
+static size_t  strt_size() {
+  return _S->g->strt.nuse;
+}
+
 void strt_destroy() {
   stringtable *strt = &_S->g->strt;
   qstr *str;
@@ -182,11 +188,12 @@ void strt_destroy() {
     strt->ht[i] = NULL;
   }
   strt->nuse = 0;
+  Mem.alloc(strt->ht,size*sizeof(void*),0);
 }
 void strt_init(){
   memcpy(typeLstr,typeString,sizeof(struct typeobj));
   typeLstr->free=NULL;
 }
 
-struct strApi STR = {strt_init,string_new, string_get, string_table_resize, qbufAdd, qsub,
-                     qsplit, qindex};
+struct QString STR = {strt_init,strt_destroy,string_new, string_get, string_table_resize, qbufAdd, qsub,
+                     qsplit, qindex,strt_size};

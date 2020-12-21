@@ -52,7 +52,7 @@ typedef void (*serialfun)(qbytes *l, void *o);
 
 typedef int (*deserialfun)(byte *l, intptr_t *o);
 
-typedef INT (*comparefun)(INT a, INT b);
+typedef size_t (*comparefun)(void *a, void *b);
 
 typedef char *(*o2strfun)(qbytes *l, qobj *o);
 

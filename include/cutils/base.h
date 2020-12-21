@@ -37,6 +37,7 @@ typedef enum {
 #define qerror(str, code) \
   do{fprintf(stdout,"%s %s\ttype:%d\n",AT,str,code);exit(code);}while(0)
 
+#ifndef qassert
 #define qassert(expr)              \
   ({      \
       if (!(expr))                \
@@ -45,7 +46,7 @@ typedef enum {
        exit(1);\
       }                \
     })
-
+#endif
 #define qcheck(expr, str)              \
   ({      \
       if (!(expr))                \

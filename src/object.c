@@ -16,21 +16,25 @@
 #include <math.h>
 //TYPEDEFINE
 void serialStr(qbytes *l, qstr *s);
+int serialInt(qbytes *bytes, INT o);
+int deserialInt(byte *l, intptr_t *i);
 
 void serialType(qbytes *l, Type o) {
-	serialStr(l, o->name);
+  serialInt(l,o->id);
+//	serialStr(l, o->name);
 }
 int deserialStr(byte *l, intptr_t *i);
 int deserialType(byte *l, intptr_t *i) {
-	qstr *s;
-	int diff = deserialStr(l, &s);
+//	qstr *s;
+//	int diff = deserialStr(l, &s);
+	int diff=deserialInt(l,i);
 //	l += diff;
 	qentry entry;
-	RBNode *node = RB.search(_S->g->typeinfos, s);
+	RBNode *node = RB.search(_S->g->typeinfos, *i);
 	*i = node->val;
 	return diff;
 }
-INT cmpInt(INT a, INT b) {
+size_t cmpInt(INT a, INT b) {
 	return a - b;
 //	if (b->type == typeInt)
 //		return a - b->val.i;
@@ -108,9 +112,16 @@ char* bool2str(qbytes* bytes, bool o) {
 	bytes->length += 4;
 	return ptr - 4;
 }
-INT cmpStr(qstr *a, qstr *b) {
-	return strcmp(a->val, b->val);
+static size_t cmpStr(qstr *s1, qstr *s2) {
+  size_t diff = s1->hash - s2->hash;
+  if (diff) {
+    return diff;
+  }
+  return strcmp(s1->val,s2->val);
 }
+//size_t cmpStr(qstr *a, qstr *b) {
+//	return strcmp(a->val, b->val);
+//}
 size_t hashStr(const qstr *o) {
 	return o->hash;
 }
@@ -435,8 +446,8 @@ static INT charcmp(qstr *a, qstr *b) {
 }
 void initType() {
 	int len = sizeof(typeBase) / sizeof(typeBase[0]);
-	Type cmp = typeCompare(charcmp);
-	RBTree* tree = RB.create(cmp, NULL);
+//	Type cmp = typeCompare(charcmp);
+	RBTree* tree = RB.create(NULL, NULL);
 	_S->g->typeinfos = tree;
 	for (int i = 0; i < len; i++) {
 		Type t = &typeBase[i];

@@ -4,6 +4,7 @@
  *  Created on: 2019年2月21日
  *      Author: WanQing
  */
+#include <cutils/stl/rbtree.h>
 #include "cutils/control.h"
 #include "cutils/std/string.h"
 #include "cutils/mem.h"
@@ -82,14 +83,14 @@ extern void bytes_cache_clear();
 
 extern void list_cache_clear();
 
-extern void strt_destroy();
 
 void qcutils_destroy() {
+  RB.destroy( &_S->g->typeinfos,NULL);
   rb_cache_clear();
   link_cache_clear();
   bytes_cache_clear();
   list_cache_clear();
-  strt_destroy();
+  STR.destroy();
 }
 
 const struct ctrlApi CTRL = {qcutils_init, qtry, qthrow, qrunerror,

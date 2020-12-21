@@ -13,6 +13,7 @@
 #define uentry(t) t->entry
 #define size_entry(t) ((t)->type&MAP_TABLE)?sizeof(qentry_dict):sizeof(qentry_set)
 #define size_map (sizeof(qmap) + sizeof(Type))
+
 static void map_resize(qmap *t, size_t size) {
   int oldsize = t->size, hash;
   Type keytype = map_keytype(t);
@@ -87,7 +88,7 @@ static bool map_del(qmap *t, const qobj *key, qentry_dict *res) {
     qentry_dict *entry = gentry2(t, hash);
     qentry_dict *prev = NULL;
     while (entry) {
-      if ((entry->key->val.p==key)||keytype->compare(entry->key->val.p, key) == 0) {
+      if ((entry->key == key) || keytype->compare(entry->key, key) == 0) {
         if (prev)
           prev->next = entry->next;
         else
@@ -205,22 +206,19 @@ static bool map_next(mapIter *iter) {
   return false;
 }
 
-static qmap *map_new(Type keytype, bool isTable) {
-  qmap *t = cast(qmap*, Mem.alloc(NULL, 0, sizeof(qmap)));
+static qmap *map_new(Type keytype, MapType type) {
+  qmap *t = cast(qmap*, Mem.alloc(NULL, 0, size_map));
   map_keytype(t) = keytype;
-  if (isTable)
-    t->type |= MAP_TABLE;
-  if (keytype == NULL)
-    t->type |= MAP_OBJTYPE;
+  t->type = type;
   map_resize(t, MINTABLESIZE);
   return t;
 }
 
 static void map_destroy(qmap *map) {
   if (map->length) {
-    MapType freeMode=map->type;
+    MapType freeMode = map->type;
     Type keytype = map_keytype(map);
-    int entrysize=size_entry(map);
+    int entrysize = size_entry(map);
     if (keytype) {
       qentry_dict *entry2, *ptr;
       Type valtype;
