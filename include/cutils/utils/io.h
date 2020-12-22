@@ -27,7 +27,7 @@ extern "C"{
 #define writeInt64(ptr,n) writeNormalVar(ptr,n,long long)
 #define writeFlt32(ptr,n) writeNormalVar(ptr,n,float)
 #define writeFlt64(ptr,n) writeNormalVar(ptr,n,double)
-
+#define writeWord(ptr,n) writeNormalVar(ptr,n,size_t)
 #define readNormalVar(ptr,type) ({\
 	ptr=cast(type*,ptr)+1;\
 	*(cast(type*,ptr)-1);		\
@@ -43,6 +43,7 @@ extern "C"{
 #define readInt64(ptr) readNormalVar(ptr,long long)
 #define readFlt32(ptr) readNormalVar(ptr,float)
 #define readFlt64(ptr) readNormalVar(ptr,double)
+#define readWord(ptr) readNormalVar(ptr,size_t)
 #define READ_SIZE 1024
 typedef struct qfilereader{
 	FILE *file;

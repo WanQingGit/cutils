@@ -22,26 +22,25 @@ typedef enum {
 /*type of variable*/
 typedef enum {
     V_NIL,
-    V_FUNCTION,
     V_STR,
     V_NUMFLT,
     V_NUMINT,
     V_BOOL,
     V_TABLE,
+    V_LIST,
     V_ARRAY,
     V_RBTREE,
     V_TYPE,
-    V_USERDATA,
 } qtype;
 #define HASHMASK (~((size_t)0))
-typedef struct qhashMap qmap;
+typedef struct QHashMap qmap;
 typedef struct qobj qobj;
 typedef struct qvector *qvec;
 typedef struct qstr qstr;
 typedef struct qbytes qbytes;
 #define OBJ(v, t) {{cast(void*,v)},t}
 
-#define o2gc(o) (cast(GCObj*,o)-1)
+#define o2gc(o) (cast(GCNode*,o)-1)
 #define incr_ref(o) o2gc(o)->nref++
 
 typedef void *(*errfun)(void *u, errcode code, char *msg);
@@ -53,6 +52,7 @@ typedef void (*serialfun)(qbytes *l, void *o);
 typedef int (*deserialfun)(byte *l, intptr_t *o);
 
 typedef size_t (*comparefun)(void *a, void *b);
+typedef size_t (*assignfunc)(void *dst, void *src);
 
 typedef char *(*o2strfun)(qbytes *l, qobj *o);
 
@@ -66,15 +66,16 @@ typedef struct typeobj {
     deserialfun deserial;
     o2strfun toString;
     freefun free;
+    assignfunc assign;
     size_t id;
+    size_t size;
     char name[16];
 } typeobj, *Type;
 //extern const  uint HASHMASK = -1;
 #define TYPEDEFINE \
  const Type typeType, typeInt, typeFloat, typeBool, typeString, typeMap,\
-        typeList, typeModule, typeCFun, typeCClosure, typeClosure, typeRBTree,\
-        typeThread, typeNULL;
-extern TYPEDEFINE;
+        typeList, typeCFun, typeRBTree,typeNULL;
+extern TYPEDEFINE
 
 typedef enum {
     RED, BLACK
@@ -99,12 +100,14 @@ typedef struct RBTree {
     int length;
     bool multi: 8;
 } RBTree;
-typedef struct GCObj {
-    struct GCObj *next;
+typedef struct GCNode {
+    struct GCNode *next;
+    struct GCNode *prev;
+    ssize_t size;
+    ssize_t gcref;
     ssize_t nref;
     typeobj *type;
-    ssize_t size;
-} GCObj;
+} GCNode;
 struct qstr {
     struct qstr *hnext;
     size_t hash;
@@ -125,8 +128,7 @@ typedef struct stringtable {
     uint size;
 } stringtable;
 typedef struct gc {
-    GCObj *allgc; /* list of all collectable objects */
-    GCObj *protect; /* list of all collectable objects */
+    GCNode *allgc; /* list of all collectable objects */
     ptrdiff_t GCdebt; /* bytes allocated not yet compensated by the collector */
 } GC;
 struct longjmp {
@@ -218,15 +220,12 @@ typedef enum {
  * keytype为null,则值必须带类型。
  * valtype用于序列化，仅当keytype存在时有效
  */
-struct qhashMap {
+struct QHashMap {
     qentry *entry;
     Type valtype;
     uint size;
     uint length;
     MapType type;
-#ifdef QDEBUG
-    uint nfilled;
-#endif
 };
 //typedef struct qdict {
 //    qmap ht[2];
@@ -236,18 +235,8 @@ extern qobj nilobj;
 
 typedef int (*qfunc)(State *S, int argc, int resc);
 
-typedef int (*compare)(qval v1, qval v2);
 
-typedef struct qvector {
-    int length;
-    int capacity;
-    qval *data;
-    Type type;
-} qvector;
-typedef struct {
-    int length;
-    qval data[];
-} qtuple;
+
 
 typedef struct qstrbuffer {
     uint size;
@@ -267,6 +256,7 @@ typedef struct qlogger {
 } qlogger;
 
 extern State *_S;
+extern gl_state *_G;
 
 Type createType(char *name, comparefun compare, hashfun hash,
                 serialfun serialize, deserialfun deserial, o2strfun toString, freefun free,

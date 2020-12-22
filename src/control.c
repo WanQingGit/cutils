@@ -13,6 +13,7 @@
 static gl_state qgs = {0};
 static State qs = {&qgs};
 State *_S = &qs;
+gl_state *_G=&qgs;
 
 int qtry(State *s, Pfunc f, void *ud) {
   struct longjmp jmp;
@@ -85,7 +86,7 @@ extern void list_cache_clear();
 
 
 void qcutils_destroy() {
-  RB.destroy( &_S->g->typeinfos,NULL);
+  RB.destroy( &_G->typeinfos,NULL);
   rb_cache_clear();
   link_cache_clear();
   bytes_cache_clear();

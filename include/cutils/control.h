@@ -16,12 +16,13 @@ extern "C"{
       if (!(expr))								\
     	 qthrow(S, ERR_ASSERT,"error:"#expr"\n");\
     })
+#ifndef qassert
 #define qassert(expr)							\
   ({			\
       if (!(expr))								\
     	 qthrow(_S, ERR_ASSERT,"error:"#expr"\n");\
     })
-
+#endif
 #define skyc_error(msg) qthrow(_S, ERR_RUN,"error:"#msg"\n")
 /* type of protected functions, to be ran by 'runprotected' */
 typedef void (*Pfunc)(State *S, void *ud);

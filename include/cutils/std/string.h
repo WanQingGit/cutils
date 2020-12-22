@@ -18,7 +18,7 @@ extern "C"{
 #define MINSTRTABSIZE   128
 
 struct QString {
-//    typeobj type;
+    typeobj type;
 
     void (*init_env)();
 

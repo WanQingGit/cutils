@@ -82,7 +82,7 @@ static void qsplit(qvec l, const char *str, const char *s) {
 void string_table_resize(int newsize) {
   int i;
   qstr *p, *hnext;
-  stringtable *tb = &(_S->g->strt);
+  stringtable *tb = &(_G->strt);
   if (newsize != tb->size) { /* grow table if needed */
     mem_realloc_vector(tb->ht, tb->size, newsize, qstr*);
   }
@@ -104,7 +104,7 @@ typeobj _typelstr;
 Type  typeLstr=&_typelstr;
 static qstr *gshrstr( const char *str, size_t l) {
   qstr *ts;
-  gl_state *g = _S->g;
+  gl_state *g = _G;
   unsigned int h = str_hash_count(str, l, g->seed);
   qstr **list = &g->strt.ht[h & (g->strt.size - 1)];
   qassert(str != NULL);
@@ -122,7 +122,7 @@ static qstr *gshrstr( const char *str, size_t l) {
   }
   ts = newstr(l, h, str);
   incr_ref(ts);
-//  GCObj *obj=o2gc(ts);
+//  GCNode *obj=o2gc(ts);
 //  obj->nref--;
 //  if(obj->nref<=0){
 //    assert(obj->nref==0);
@@ -148,7 +148,7 @@ static qstr *string_new(const char *str, size_t l) {
   }
 }
 static qstr *string_del(qstr *str){
-  gl_state *g = _S->g;
+  gl_state *g = _G;
   qstr *nextstr=str->hnext;
   qstr **list = &g->strt.ht[str->hash & (g->strt.size - 1)];
 }
@@ -170,11 +170,11 @@ static qstr *newstr(size_t l, unsigned int h,
 }
 
 static size_t  strt_size() {
-  return _S->g->strt.nuse;
+  return _G->strt.nuse;
 }
 
 void strt_destroy() {
-  stringtable *strt = &_S->g->strt;
+  stringtable *strt = &_G->strt;
   qstr *str;
   int size = strt->size;
   for (int i = 0; i < size; i++) {
@@ -182,7 +182,7 @@ void strt_destroy() {
     while (str) {
       qstr *s = str;
       str = str->hnext;
-      Mem.alloc(o2gc(s), sizeof(qstr) + (s->len + 1) + sizeof(GCObj),
+      Mem.alloc(o2gc(s), sizeof(qstr) + (s->len + 1) + sizeof(GCNode),
                 0);
     }
     strt->ht[i] = NULL;
@@ -191,9 +191,10 @@ void strt_destroy() {
   Mem.alloc(strt->ht,size*sizeof(void*),0);
 }
 void strt_init(){
+  memcpy(&STR, typeString, sizeof(struct typeobj));
   memcpy(typeLstr,typeString,sizeof(struct typeobj));
   typeLstr->free=NULL;
 }
 
-struct QString STR = {strt_init,strt_destroy,string_new, string_get, string_table_resize, qbufAdd, qsub,
+struct QString STR = {.init_env=strt_init,strt_destroy,string_new, string_get, string_table_resize, qbufAdd, qsub,
                      qsplit, qindex,strt_size};

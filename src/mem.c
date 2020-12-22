@@ -1,6 +1,4 @@
 /*
- * QMem.c
- *
  *  Created on: 2019年2月21日
  *      Author: WanQing
  */
@@ -30,7 +28,7 @@ void *normal_alloc(void *ptr, size_t osize, size_t nsize) {
             qthrow(_S, ERR_MEM,
                    "Unable to allocate memory,If necessary, free memory manually!");
     }
-    _S->g->gc.GCdebt += nsize - osize;
+    _G->gc.GCdebt += nsize - osize;
     return n;
 }
 
@@ -42,7 +40,7 @@ static void *mem_alloc( void *ptr, size_t osize, size_t nsize) {
     if (nsize == 0) {
         if (pool_free(ptr) == false) {
             qfree(ptr);
-            _S->g->gc.GCdebt -= osize;
+            _G->gc.GCdebt -= osize;
         }
         return NULL;
     } else { //nsize != 0
@@ -50,20 +48,20 @@ static void *mem_alloc( void *ptr, size_t osize, size_t nsize) {
             if (osize > SMALL_REQUEST_THRESHOLD) {
                 if (nsize > SMALL_REQUEST_THRESHOLD) {
                     n = realloc(ptr, nsize);
-                    _S->g->gc.GCdebt += nsize - osize;
+                    _G->gc.GCdebt += nsize - osize;
                 } else {
                     pool_malloc(&n, nsize);
                     memcpy(n, ptr, osize);
-                    _S->g->gc.GCdebt -= osize;
+                    _G->gc.GCdebt -= osize;
                     qfree(ptr);
                 }
             } else { //osize <= SMALL_REQUEST_THRESHOLD
                 if (nsize > SMALL_REQUEST_THRESHOLD) {
                     n = malloc(nsize);
                     memcpy(n, ptr, osize);
-                    _S->g->gc.GCdebt += nsize;
+                    _G->gc.GCdebt += nsize;
                     if (pool_free(ptr) == false) {
-                        _S->g->gc.GCdebt -= osize;
+                        _G->gc.GCdebt -= osize;
                         free(ptr);
                     }
                 } else { //nsize <= SMALL_REQUEST_THRESHOLD
@@ -75,7 +73,7 @@ static void *mem_alloc( void *ptr, size_t osize, size_t nsize) {
                     } else {
                         pool_malloc(&n, nsize);
                         memcpy(n, ptr, osize);
-                        _S->g->gc.GCdebt -= osize;
+                        _G->gc.GCdebt -= osize;
                         qfree(ptr);
                     }
                 }
@@ -83,7 +81,7 @@ static void *mem_alloc( void *ptr, size_t osize, size_t nsize) {
         } else { //osize=0
             if (nsize > SMALL_REQUEST_THRESHOLD) {
                 n = malloc(nsize);
-                _S->g->gc.GCdebt += nsize;
+                _G->gc.GCdebt += nsize;
             } else {
                 pool_malloc(&n, nsize);
             }
@@ -114,11 +112,11 @@ static void *mem_growArray(void *block, int *size, int n,
 }
 
 void *mem_new( Type tt, size_t sz) {
-    GCObj *o = cast(GCObj*, Mem.alloc( NULL, 0, sz + sizeof(GCObj)));
+    GCNode *o = cast(GCNode*, Mem.alloc( NULL, 0, sz + sizeof(GCNode)));
     o->size=sz;
     o->type = tt;
-    o->next = _S->g->gc.allgc;
-    _S->g->gc.allgc = o;
+    o->next = _G->gc.allgc;
+    _G->gc.allgc = o;
     return o + 1;
 }
 
@@ -126,12 +124,5 @@ void mem_enable_pool(bool enable) {
     pool_enable = enable;
 }
 
-static void mem_gcpro(GCObj *o) {
-    gl_state *g = _S->g;
-    qassert_(_S, g->gc.allgc == o);
-    g->gc.allgc = o->next;
-    o->next = g->gc.protect;
-    g->gc.protect = o;
-}
-const struct apiMem Mem = {mem_enable_pool, mem_new, mem_alloc, mem_gcpro,
+const struct apiMem Mem = {mem_enable_pool, mem_new, mem_alloc,
                            mem_growArray};

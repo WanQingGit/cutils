@@ -20,7 +20,10 @@ int serialInt(qbytes *bytes, INT o);
 int deserialInt(byte *l, intptr_t *i);
 
 void serialType(qbytes *l, Type o) {
-  serialInt(l,o->id);
+  if(o)
+    serialInt(l,o->id);
+  else
+    serialInt(l,0);
 //	serialStr(l, o->name);
 }
 int deserialStr(byte *l, intptr_t *i);
@@ -28,10 +31,11 @@ int deserialType(byte *l, intptr_t *i) {
 //	qstr *s;
 //	int diff = deserialStr(l, &s);
 	int diff=deserialInt(l,i);
-//	l += diff;
-	qentry entry;
-	RBNode *node = RB.search(_S->g->typeinfos, *i);
-	*i = node->val;
+	if(*i){
+    RBNode *node = RB.search(_G->typeinfos, *i);
+    *i = node->val;
+	}else
+	  *i=0;
 	return diff;
 }
 size_t cmpInt(INT a, INT b) {
@@ -263,69 +267,7 @@ int deserialMap(byte *l, intptr_t *map_ptr) {
 	}
 	return l - ol;
 }
-uint hashList(intptr_t o) {
-	return HASHMASK & o;
-}
-void serialList(qbytes *bytes, void *o) {
-	checksize(bytes, 5);
-	qvec list = cast(qvec, o);
-	int len = list->length;
-	int n = sizeof(list->length);
-	byte *l = Bytes_tail(bytes, byte);
-	writeInt32(l, len);
-	bytes->length += 4;
-	if (len) {
-		bytes->length += 1;
-		if (list->type) {
-			writeByte(l, 1);
-			serialStr(bytes, list->type->name);
-			Type type = list->type;
-			for (int i = 0; i < len; i++) {
-				type->serialize(bytes, list->data[i].obj);
-			}
-		} else {
-			writeByte(l, 0);
-			checksize(bytes, len * 8);
-			l = Bytes_tail(bytes, byte);
-			writeBytes(l, list->data, len * 8);
-			bytes->length += len * 8;
-//			for (int i = 0; i < len; i++) {
-//				l = writeInt64(l, list->data[i].i);
-//			}
-		}
-	}
-}
-int deserialList(byte *l, intptr_t *i) {
-	byte *ol = l;
-	int len = readInt32(l);
-	qvec list = Arr.create(len);
-	if (len) {
-		bool typeFlag = readByte(l);
-		if (typeFlag) {
-			l += deserialStr(l, i);
-			qstr *typename = cast(qstr*, *i);
-			RBNode *node = RB.search(_S->g->typeinfos, typename);
-			qassert(node && node->val);
-			Type type = cast(Type, node->val);
-			list->type = type;
-			for (int k = 0; k < len; k++) {
-				l += type->deserial(l, i);
-				Arr.append(list, *i);
-			}
-		} else {
-			memcpy(list->data, l, len * 8);
-			list->length = len;
-			l += len * 8;
-			//		Arr.addArray(list,l,len);
-			//		for (int k = 0; k < len; k++) {
-			//			Arr.append(list, readInt64(l));
-			//		}
-		}
-	}
 
-	*i = list;
-	return l - ol;
-}
 
 INT cmpPtr(intptr_t a, intptr_t b) {
 	return a - b;
@@ -366,14 +308,14 @@ int deserialRB(byte *l, intptr_t *i) {
 	l += deserialStr(l, i);
 	int len = readInt32(l);
 	qstr *typename = cast(qstr*, *i);
-	RBNode *node = RB.search(_S->g->typeinfos, typename);
+	RBNode *node = RB.search(_G->typeinfos, typename);
 	qassert(node && node->val);
 	Type typeKey = cast(Type, node->val);
 	int valFlag = readByte(l);
 	if (valFlag) {
 		l += deserialStr(l, i);
 		typename = cast(qstr*, *i);
-		node = RB.search(_S->g->typeinfos, typename);
+		node = RB.search(_G->typeinfos, typename);
 		qassert(node && node->val);
 		Type typeVal = cast(Type, node->val);
 		tree = RB.create(typeKey, typeVal);
@@ -391,39 +333,26 @@ int deserialRB(byte *l, intptr_t *i) {
 	*i = tree;
 	return l - ol;
 }
-/*type=qmalloc(typeobj);\
-		 type->baseType=base;\
-		 type->name=STR.get("<"#str">");\
-		 type->compare=comparef;\
-		 type->serialize=serial;\
-		 type->deserial=deser;\
-		 type->hash=hashfun;\
-		 type->free=freef;\
-		 type->toString=strf;\*/
 // @formatter:off
 static typeobj typeBase[] = {
-{       cmpInt,    hashInt,   serialInt, deserialInt, int2str,  NULL, V_NUMINT ,"<int>",}, //0
-{   cmpFloat,  hashFloat, serialFlt, deserialFlt, flt2str,  NULL, V_NUMFLT ,"<float>" }, //1
-{      cmpInt,    hashBool,  serialBool,deserialBool,bool2str, NULL, V_BOOL ,"<bool>",}, //2
-{    cmpStr,    hashStr,   serialStr, deserialStr, str2str,  NULL, V_STR ,"<string>",}, //3
-{       NULL,      hashMap,   serialMap, deserialMap,	NULL,     NULL, V_TABLE ,"<map>",}, //4
-{      NULL,      hashList,  serialList,deserialList,NULL,     NULL, V_ARRAY ,"<list>",}, //5
-{  cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_FUNCTION ,"<function>"}, //6
-{    cmpPtr,    hashPtr,   serialRB,  deserialRB,  NULL,     NULL, V_RBTREE ,"<RBTree>"}, //7
-{        cmpPtr,    hashPtr,   NULL,      NULL,        NULL,     NULL, V_NIL ,"null",}, //8
-{     cmpPtr,    hashPtr,   serialType,deserialType,NULL,     NULL, V_TYPE,"<type>"} //9
+{       cmpInt,    hashInt,   serialInt, deserialInt, int2str,  NULL, .id=V_NUMINT ,.name="<int>",}, //0
+{   cmpFloat,  hashFloat, serialFlt, deserialFlt, flt2str,  NULL, .id=V_NUMFLT ,.name="<float>" }, //1
+{      cmpInt,    hashBool,  serialBool,deserialBool,bool2str, NULL, .id=V_BOOL ,.name="<bool>",}, //2
+{     cmpPtr,    hashPtr,   serialType,deserialType,NULL,     NULL, .id=V_TYPE,.name="<type>"}, //3
+{    cmpStr,    hashStr,   serialStr, deserialStr, str2str,  NULL, .id=V_STR ,.name="<string>",}, //4
+{       NULL,      hashMap,   serialMap, deserialMap,	NULL,     NULL, .id=V_TABLE ,.name="<map>",}, //5
+//{      NULL,      hashList,  serialList,deserialList,NULL,     NULL, V_ARRAY ,"<list>",}, //6
+{    cmpPtr,    hashPtr,   serialRB,  deserialRB,  NULL,     NULL, .id=V_RBTREE ,.name="<RBTree>"}, //7
 };
 
 const Type typeInt = &typeBase[0],
 					 typeFloat = &typeBase[1],
 					 typeBool =&typeBase[2],
-					 typeString = &typeBase[3],
-					 typeMap = &typeBase[4],
-					 typeList =&typeBase[5],
-					 typeCFun = &typeBase[6],
-					 typeRBTree =&typeBase[7],
-					 typeNULL = &typeBase[8],
-					 typeType=&typeBase[9];
+					 typeType=&typeBase[3],
+					 typeString = &typeBase[4],
+					 typeMap = &typeBase[5],
+//					 typeList =&typeBase[5],
+					 typeRBTree =&typeBase[7];
 // @formatter:on
 //#define TYPEREG(type,name,hashfun,serial,deserial,comparef,strf,freef,base) \
 //  static typeobj _##type={"<"#name">",hashfun,serial,deserial,comparef,strf,freef,base};\
@@ -448,7 +377,7 @@ void initType() {
 	int len = sizeof(typeBase) / sizeof(typeBase[0]);
 //	Type cmp = typeCompare(charcmp);
 	RBTree* tree = RB.create(NULL, NULL);
-	_S->g->typeinfos = tree;
+	_G->typeinfos = tree;
 	for (int i = 0; i < len; i++) {
 		Type t = &typeBase[i];
 //		char *name = cast(char*, t->name);
@@ -457,11 +386,11 @@ void initType() {
 	}
 }
 bool destroyType(qstr *name) {
-	RBNode *node = RB.search(_S->g->typeinfos, name);
+	RBNode *node = RB.search(_G->typeinfos, name);
 	if (node == NULL)
 		return false;
 	Type t = cast(Type, node->val);
-	RB.delNode(_S->g->typeinfos, node);
+	RB.delNode(_G->typeinfos, node);
 	qfree(t);
 	return true;
 }
@@ -470,7 +399,7 @@ Type createType(char *name, comparefun compare, hashfun hash,
 		size_t typeid) {
 	Type t = qmalloc(typeobj);
 	if (name) {
-		qassert(RB.insert(_S->g->typeinfos,t->name,t,NULL));
+		qassert(RB.insert(_G->typeinfos,t->name,t,NULL));
 	}
 	t->compare = compare;
 	t->hash = hash;

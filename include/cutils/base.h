@@ -15,9 +15,12 @@ extern "C"{
 #else   /* G++ */
 #ifndef __cplusplus
 #define NULL ((void *)0)
-typedef enum {
-    false, true
-} bool;
+#ifndef _bool
+	typedef enum {
+			false, true
+	} bool;
+#define _bool
+#endif
 #else   /* C++ */
 #define NULL 0
 #endif  /* C++ */

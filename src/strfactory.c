@@ -29,8 +29,6 @@ static void string_table_resize(size_t newsize) {
   Map.resize(strtable, newsize);
 }
 
-static typeobj _typelstr;
-static Type typeLstr = &_typelstr;
 struct TemmStr {
     struct qstr s;
     char *val;
@@ -39,7 +37,7 @@ struct TemmStr {
 static qstr *gshrstr(const char *str, size_t l) {
   struct TemmStr tempStr;
   qstr *ts;
-  gl_state *g = _S->g;
+  gl_state *g = _G;
   unsigned int h = str_hash_count(str, l, g->seed);
   tempStr.s.hash = h;
   tempStr.val = str;
@@ -53,7 +51,7 @@ static qstr *gshrstr(const char *str, size_t l) {
   ts = newstr(l, h, str);
   incr_ref(ts);
   qentry1.dict->key = ts;
-//  GCObj *obj=o2gc(ts);
+//  GCNode *obj=o2gc(ts);
 //  obj->nref--;
 //  if(obj->nref<=0){
 //    assert(obj->nref==0);
@@ -107,32 +105,35 @@ static size_t str_comare(qstr *s1, qstr *s2) {
     return diff;
   }
   char *str1;
-  if(s1->len==TEMP_FLAG)
-    str1=((struct TemmStr*)(s1))->val;
+  if (s1->len == TEMP_FLAG)
+    str1 = ((struct TemmStr *) (s1))->val;
   else
-    str1=s1->val;
+    str1 = s1->val;
   char *str2;
-  if(s2->len==TEMP_FLAG)
-    str2=((struct TemmStr*)(s2))->val;
+  if (s2->len == TEMP_FLAG)
+    str2 = ((struct TemmStr *) (s2))->val;
   else
-    str2=s2->val;
-  return strcmp(str1,str2);
+    str2 = s2->val;
+  return strcmp(str1, str2);
 }
 
 static void str_free(qstr *str) {
-  struct GCObj *obj=o2gc(str);
-  Mem.alloc(obj,obj->size,0);
+  struct GCNode *obj = o2gc(str);
+  Mem.alloc(obj, obj->size, 0);
 }
 
 static void strt_init() {
+  Type typeLstr = (Type) (&STR2);
   memcpy(typeLstr, typeString, sizeof(struct typeobj));
   typeLstr->free = str_free;
-  typeLstr->compare=str_comare;
+  typeLstr->compare = str_comare;
   strtable = Map.create(typeLstr, MAP_FREE_KEY);
   Map.resize(strtable, MINSTRTABSIZE);
 }
-static size_t  strt_size() {
+
+static size_t strt_size() {
   return strtable->length;
 }
-struct QString STR2 = {strt_init, strt_destroy, string_new, string_get, string_table_resize, NULL, NULL,
-                       NULL, NULL,strt_size};
+
+struct QString STR2 = {.init_env=strt_init, .destroy=strt_destroy, .create=string_new, .get=string_get, .strt_resize=string_table_resize, .add=NULL, .sub=NULL,
+        .split=NULL, .index=NULL, .size=strt_size};
