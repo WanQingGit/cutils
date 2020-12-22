@@ -264,5 +264,5 @@ static void map_destroy(qmap *map) {
   Mem.alloc(map, size_map, 0);
 }
 
-struct apiMap Map = {map_new, map_resize, map_gset, map_del, map_iter,
+struct apiMap Map = {.create=map_new, map_resize, map_gset, map_del, map_iter,
                      map_next, map_destroy};

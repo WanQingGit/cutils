@@ -45,7 +45,7 @@ typedef struct mapIter {
 //	MAP_UPDATE, MAP_GET, MAP_GSET
 //} MapMode;
 struct apiMap {
-	qmap* (*create)(Type keytype, bool isTable);
+	qmap* (*create)(Type keytype, MapType mode);
 	void (*resize)(qmap *t, size_t size);
 	/**
 	 * 获取map中key的值，
