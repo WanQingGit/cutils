@@ -1,5 +1,4 @@
 /*
- * qstrbuffer.c
  *
  *  Created on: Apr 11, 2019
  *  Author: WanQing<1109162935@qq.com>
@@ -23,61 +22,7 @@ static qstr *newstr(size_t l, unsigned int h,
 
 static qstr *string_new(const char *str, size_t l);
 
-static void qbufAdd(qstrbuf *buffer, const char *s, int n) {
-  if (n > 0) {
-    if (buffer->size - buffer->n < n) {
-      uint nsize = (buffer->size + n) * 1.9;
-      qassert(nsize > buffer->size);
-      buffer->val = (char *) realloc(buffer->val, (nsize + 1) * sizeof(char));
-      buffer->size = nsize;
-    }
-    memcpy(buffer->val + buffer->n, s, n * sizeof(char));
-    buffer->n += n;
-    buffer->val[buffer->n] = '\0';
-  } else if (n == 0) {
-    if (buffer->size == buffer->n) {
-      uint nsize = (int) ((buffer->size + n) * 1.5);
-      if (nsize < 4)
-        nsize = 4;
-      qassert(nsize > buffer->size);
-      buffer->val = (char *) realloc(buffer->val, (nsize + 1) * sizeof(char));
-      buffer->size = nsize;
-    }
-    buffer->val[buffer->n++] = cast(char, s);
-  } else {
-    qerror("cannot add a string of negative length", ERR_RUN);
-  }
-}
 
-static void qsub(qstrbuf *buffer, const char *s, const char *p, const char *r) {
-  char *ptr;
-  int len = strlen(p), rlen = strlen(r);
-  while ((ptr = strstr(s, p)) != NULL) {
-    qbufAdd(buffer, s, ptr - s);
-    qbufAdd(buffer, r, rlen);
-    s = ptr + len;
-  }
-  qbufAdd(buffer, s, strlen(s));
-}
-
-static int qindex(qstrbuf *buffer, const char *s) {
-  char *ptr = strstr(buffer->val, s);
-  if (ptr == NULL)
-    return -1;
-  int index = ptr - buffer->val;
-  return index < buffer->n ? index : -1;
-}
-
-static void qsplit(qvec l, const char *str, const char *s) {
-  char *ptr;
-  int len = strlen(s);
-  while ((ptr = strstr(str, s)) != NULL) {
-    qstr *objs = string_new(str, ptr - str);
-    Arr.append(l, objs);
-    str = ptr + len;
-  }
-  Arr.append(l, (arr_type) string_new(str, strlen(str)));
-}
 
 void string_table_resize(int newsize) {
   int i;
@@ -196,5 +141,5 @@ void strt_init(){
   typeLstr->free=NULL;
 }
 
-struct QString STR = {.init_env=strt_init,strt_destroy,string_new, string_get, string_table_resize, qbufAdd, qsub,
-                     qsplit, qindex,strt_size};
+struct QString STR = {.init_env=strt_init,strt_destroy,string_new, string_get, string_table_resize,
+                     strt_size};

@@ -8,6 +8,7 @@
 #include <stl/map.h>
 #include <time.h>
 #include <std/string.h>
+#include <cutils/stl/vector.h>
 #include "cutils/strutils.h"
 #include "cutils/mem.h"
 //MASK_ALPHA	=1 MASK_DIGIT  =2 MASK_PRINT  =4
@@ -217,3 +218,63 @@ char* backspace(char* s, char** cursor) {
 	};
 	return *cursor;
 }
+
+
+static void qbufAdd(qstrbuf *buffer, const char *s, int n) {
+  if (n >= 0) {
+    if(n==0)
+      n=(int)strlen(s);
+    if (buffer->size - buffer->n < n) {
+      uint nsize = (buffer->size + n) * 1.9;
+      qassert(nsize > buffer->size);
+      buffer->val = (char *) realloc(buffer->val, (nsize + 1) * sizeof(char));
+      buffer->size = nsize;
+    }
+    memcpy(buffer->val + buffer->n, s, n * sizeof(char));
+    buffer->n += n;
+    buffer->val[buffer->n] = '\0';
+  } else if (n == -1) {
+    if (buffer->size == buffer->n) {
+      uint nsize = (int) ((buffer->size + n) * 1.5);
+      if (nsize < 4)
+        nsize = 4;
+      qassert(nsize > buffer->size);
+      buffer->val = (char *) realloc(buffer->val, (nsize + 1) * sizeof(char));
+      buffer->size = nsize;
+    }
+    buffer->val[buffer->n++] = cast(char, s);
+  } else {
+    qerror("cannot add a string of negative length", ERR_RUN);
+  }
+}
+
+static void qsub(qstrbuf *buffer, const char *s, const char *p, const char *r) {
+  char *ptr;
+  int len = strlen(p), rlen = strlen(r);
+  while ((ptr = strstr(s, p)) != NULL) {
+    qbufAdd(buffer, s, ptr - s);
+    qbufAdd(buffer, r, rlen);
+    s = ptr + len;
+  }
+  qbufAdd(buffer, s, strlen(s));
+}
+
+static int qindex(qstrbuf *buffer, const char *s) {
+  char *ptr = strstr(buffer->val, s);
+  if (ptr == NULL)
+    return -1;
+  int index = ptr - buffer->val;
+  return index < buffer->n ? index : -1;
+}
+
+static void qsplit(qvec l, const char *str, const char *s) {
+  char *ptr;
+  int len = strlen(s);
+  while ((ptr = strstr(str, s)) != NULL) {
+    qstr *objs = STR2.create(str, ptr - str);
+    Arr.append(l, objs);
+    str = ptr + len;
+  }
+  Arr.append(l, (arr_type) STR2.create(str, strlen(str)));
+}
+struct QStrUtils StrUtils = {.add=qbufAdd,.sub=qsub,.split=qsplit, .index=qindex};

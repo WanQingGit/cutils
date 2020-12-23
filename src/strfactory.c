@@ -45,12 +45,12 @@ static qstr *gshrstr(const char *str, size_t l) {
   qentry qentry1;
   bool find = Map.gset(strtable, &tempStr, true, &qentry1);
   if (find) {
-    ts = (qstr *) qentry1.dict->key;
+    map_get_key(qentry1,ts);
     return ts;
   }
   ts = newstr(l, h, str);
   incr_ref(ts);
-  qentry1.dict->key = ts;
+  map_set_key(qentry1,ts);
 //  GCNode *obj=o2gc(ts);
 //  obj->nref--;
 //  if(obj->nref<=0){
@@ -135,5 +135,4 @@ static size_t strt_size() {
   return strtable->length;
 }
 
-struct QString STR2 = {.init_env=strt_init, .destroy=strt_destroy, .create=string_new, .get=string_get, .strt_resize=string_table_resize, .add=NULL, .sub=NULL,
-        .split=NULL, .index=NULL, .size=strt_size};
+struct QString STR2 = {.init_env=strt_init, .destroy=strt_destroy, .create=string_new, .get=string_get, .strt_resize=string_table_resize, .size=strt_size};

@@ -33,8 +33,8 @@ static void log_destroy(qlogger* logger) {
 	qstrbuf *buf = &logger->buf;
 	char endinfo[] = "logger finished,the total out size is ";
 	if (buf->size) {
-		STR.add(buf, endinfo, sizeof(endinfo) - 1);
-		STR.add(buf, endinfo, sprintf(endinfo, "%d\n", logger->sum));
+		StrUtils.add(buf, endinfo, sizeof(endinfo) - 1);
+    StrUtils.add(buf, endinfo, sprintf(endinfo, "%d\n", logger->sum));
 		log_flush(logger);
 	}
 	fclose(logger->stream);
@@ -45,8 +45,8 @@ static void log_destroy(qlogger* logger) {
 static void logger_log(qlogger* logger, char *msg) {
 	qstrbuf *buf = &logger->buf;
 	int len = strlen(msg);
-	STR.add(buf, msg, len);
-	STR.add(buf, '\n', 0);
+  StrUtils.add(buf, msg, len);
+  StrUtils.add(buf, '\n', 0);
 	logger->sum += len + 1;
 	if (logger->policy == 0)
 		return;
@@ -58,7 +58,7 @@ static void logger_log(qlogger* logger, char *msg) {
 }
 static void logger_add(qlogger* logger, char *msg, int len) {
 	qstrbuf *buf = &logger->buf;
-	STR.add(buf, msg, len);
+  StrUtils.add(buf, msg, len);
 	logger->sum += len;
 	if (logger->buf.n > logger->cachesize || logger->policy & LOG_ACTIVE) {
 		fprintf(logger->stream, buf->val);

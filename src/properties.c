@@ -68,10 +68,10 @@ void prop_write(qprop *prop) {
 		buf.n = 0;
 		qstr *key = node->key;
 		qstr *val = node->val;
-		STR.add(&buf, key->val, key->len);
-		STR.add(&buf, sep->val, sep->len);
-		STR.add(&buf, val->val, val->len);
-		STR.add(&buf, '\n', 0);
+		StrUtils.add(&buf, key->val, key->len);
+    StrUtils.add(&buf, sep->val, sep->len);
+    StrUtils.add(&buf, val->val, val->len);
+    StrUtils.add(&buf, '\n', 0);
 		fwrite(buf.val, buf.n, 1, fp);
 		node = RB.next(node);
 	}

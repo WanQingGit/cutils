@@ -10,8 +10,17 @@
 #ifdef __cplusplus
 extern "C"{
 #endif
-#include "cutils/object.h"
 
+#include <cutils/strutils.h>
+#include "cutils/object.h"
+typedef struct qlogger {
+    qstrbuf buf;
+    int length;
+    int cachesize;
+    int sum;
+    FILE *stream;
+    LogPolicy policy;
+} qlogger;
 struct apiLog {
 	qlogger* (*create)(FILE *stream, LogPolicy policy);
 	qlogger* (*createByPath)(char *path);

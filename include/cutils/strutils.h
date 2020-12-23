@@ -1,6 +1,4 @@
 /*
- * StrUtil.h
- *
  *  Created on: Sep 11, 2018
  *      Author: WanQing
  */
@@ -39,6 +37,13 @@ extern const typechar char_type[];
 #define is_newline(c) ({char _c=(c);(_c=='\n'||_c=='\r');})
 #define EOZ	(-1)
 #define nextchar(p) (*++p)
+
+typedef struct qstrbuffer {
+    uint size;
+    uint n; //used
+    char *val;
+} qstrbuf;
+
 size_t  str_hash_count(const char *str, size_t l, uint seed);
 char *str_trim(char *s);
 char* skip_empty(char* s);
@@ -51,7 +56,20 @@ void *qmemcpy(void *dst, const void *src, size_t num);
 char skip_space(char** s);
 
 uint makeseed(State *S);
-//qstr *string_get(State *S, const char *str);
+
+struct QStrUtils{
+#define buf_add(buf,s) StrUtils.add(buf,s,strlen(s))
+    void (*add)(qstrbuf *buffer, const char *s, int n);
+    /*
+     * 将字符串s中的p替换成r,例如s="a,b" p="," r="_" 最后结果是"a_b"
+     * */
+    void (*sub)(qstrbuf *buffer, const char *s, const char *p, const char *r);
+
+    void (*split)(qvec l, const char *str, const char *s);
+
+    int (*index)(qstrbuf *buffer, const char *s);
+};
+extern struct QStrUtils StrUtils;
 #ifdef __cplusplus
 }
 #endif

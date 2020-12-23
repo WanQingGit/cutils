@@ -166,94 +166,17 @@ typedef struct qobj {
     typeobj *type;
     qval val;
 } qobj;
-/**
- * qentry_dict,4用于节省内存，使用keytype保存类型
- * qentry1,2,3,4的next和key的位置一定要一致
- * 不一致遍历会出错
- * 1,2用于map,3,4用于set
- * qentry的key除非能保证hash和compare和原key相同
- * 不然一定不要更改，切记！
- */
- /**
-  * deprecated
-  * 没有必要存储类型信息
-  */
-//typedef struct qentry1 {
-//    struct qentry1 *next;
-//    qobj key;
-//    qobj val;
-//} qentry1;
 
-//typedef struct qentry3 {
-//    struct qentry3 *next;
-//    qobj key;
-//} qentry3;
-
-typedef struct qentry_dict {
-    struct qentry_dict *next;
-    qobj *key;
-    qobj *val;
-} qentry_dict;
-
-
-typedef struct qentry_set {
-    struct qentry_set *next;
-    qobj *key;
-} qentry_set;
-typedef union qentry {
-//    qentry1 *_1;
-    qentry_set *set;
-    qentry_dict *dict;
-} qentry;
-/**
- * 第一位用于判断是否是table
- * 第二位用于判断是否使用keytype
- * map创建后不要修改该值
- */
-typedef enum {
-    MAP_SET = 0, MAP_TABLE = 1, MAP_OBJTYPE = 2,MAP_FREE_VAL=4,MAP_FREE_KEY=8,MAP_FREE_FORCE=16
-} MapType;
-/**
- * 当存放的对象不是qobj对象时，使用keytype来实现增删改查
- * map一旦创建，keytype不能修改，valtype可修改,所以keytype不可见
- * keytype不为null,则插入的key必须满足该类型，插入的值是原生不带类型的。
- * keytype为null,则值必须带类型。
- * valtype用于序列化，仅当keytype存在时有效
- */
-struct QHashMap {
-    qentry *entry;
-    Type valtype;
-    uint size;
-    uint length;
-    MapType type;
-};
-//typedef struct qdict {
-//    qmap ht[2];
-//    byte state;
-//} qdict;
 extern qobj nilobj;
 
 typedef int (*qfunc)(State *S, int argc, int resc);
 
 
 
-
-typedef struct qstrbuffer {
-    uint size;
-    uint n; //used
-    char *val;
-} qstrbuf;
 typedef enum {
     LOG_LAZY = 0, LOG_ACTIVE = 1 << 2, LOG_NORMAL = 1 << 3, LOG_CONSOLE = 1 << 4
 } LogPolicy;
-typedef struct qlogger {
-    qstrbuf buf;
-    int length;
-    int cachesize;
-    int sum;
-    FILE *stream;
-    LogPolicy policy;
-} qlogger;
+
 
 extern State *_S;
 extern gl_state *_G;

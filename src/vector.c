@@ -1,7 +1,6 @@
 #include <stl/vector.h>
 #include <cutils/stl/bytelist.h>
 #include <cutils/utils/io.h>
-#include <cutils/stl/rbtree.h>
 #include "cutils/mem.h"
 #include "cutils/control.h"
 #include "std/string.h"
@@ -42,7 +41,7 @@ static qvec list_create(Type type, int cap, ArrMode mode) {
   return l;
 }
 
-static qvec list_append(qvec list, void *data) {
+static qvec _list_append(qvec list, void *data) {
   if (list->length >= list->capacity) {
     list_resize(list, -1);
   }
@@ -365,7 +364,7 @@ int deserialList(byte *l, intptr_t *i) {
 }
 
 struct QVectorApi Arr = {.type={.serialize=serialList, .deserial=deserialList, .free=list_destroy, .id=V_ARRAY, .size=sizeof(qvector), .name="<vector>"},
-        .create=list_create, list_clone, list_resize, list_append, list_append,
+        .create=list_create, list_clone, list_resize, _list_append, _list_append,
                              list_remove, pop_back, list_at, list_destroy, list_addArray, list_addFromVec, sort, add,
                              addSort, list_shrink};
 const Type typeList = &Arr.type;

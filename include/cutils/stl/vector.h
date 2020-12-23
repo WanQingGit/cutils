@@ -19,29 +19,36 @@ typedef enum {
 
 typedef struct qvector {
     size_t length;
-    size_t capacity;
     size_t datasize;
+    size_t *data;
+    size_t capacity;
     Type type;
     assignfunc assign;
     comparefun compare;
-    size_t *data;
     ArrMode mode;
 } qvector;
+
+typedef struct _qtuple {
+    size_t length;
+    size_t datasize;
+    size_t *data;
+}qtuple;
+
 #define arr_tail(l)  (l)->data[(l)->length-1]
 #define arr_data(l, t, i) cast(t,l->next[i].p)
-
 struct QVectorApi {
     struct typeobj type;
 
     int (*init_env)();
 
-    qvec (*create)(Type type, size_t cap,int mode);
+    qvec (*create)(Type type, size_t cap,ArrMode mode);
 
     qvec (*clone)(qvec list);
 
     qvec (*resize)(qvec list, int nsize);
 
     //把data的内容插入到链表list的末尾
+#define list_append(l,data) Arr.append((qvec)(l),(arr_type)(data))
     qvec (*append)(qvec list, arr_type data);
 
     qvec (*push)(qvec list, arr_type data);
@@ -61,6 +68,7 @@ struct QVectorApi {
 //	qval (*pop_back)(ArrayList list);
 
 //返回list中第index个数据的指针
+#define list_get(v,l,i) v=(typeof(v))((l)->data[i])
     arr_type(*at)(qvec list, ssize_t index);
 
 //查找list中第一个与data相等的元素的下标，
