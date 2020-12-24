@@ -17,6 +17,31 @@ typedef struct rbData {
 	rbtype key;                    // 关键字(键值)
 	rbtype val;
 } rbData;
+
+typedef enum {
+    RED, BLACK
+} rbcolor;
+typedef enum {
+    RB_NEAR, RB_BELOW, RB_ABOVE
+} rb_flag;
+typedef struct RBNode {
+    intptr_t key;                    // key和val的位置不能改变
+    intptr_t val;
+    struct RBNode *left;
+    struct RBNode *right;
+    struct RBNode *parent;
+    rbcolor color: 8;        // 颜色(RED 或 BLACK)
+} RBNode;
+//typedef int (*comparef)(rbtype *a, rbtype *b);
+// 红黑树的根
+typedef struct RBTree {
+    Type typeKey;
+    Type typeVal;
+    RBNode *root;
+    int length;
+    bool multi: 8;
+} RBTree;
+
 // @formatter:off
 #define rb_each(tree,stat) do{\
 		RBNode *_iter = RB.min(tree);\

@@ -77,29 +77,7 @@ typedef struct typeobj {
         typeList, typeCFun, typeRBTree,typeNULL;
 extern TYPEDEFINE
 
-typedef enum {
-    RED, BLACK
-} rbcolor;
-typedef enum {
-    RB_NEAR, RB_BELOW, RB_ABOVE
-} rb_flag;
-typedef struct RBNode {
-    intptr_t key;                    // key和val的位置不能改变
-    intptr_t val;
-    struct RBNode *left;
-    struct RBNode *right;
-    struct RBNode *parent;
-    rbcolor color: 8;        // 颜色(RED 或 BLACK)
-} RBNode;
-//typedef int (*comparef)(rbtype *a, rbtype *b);
-// 红黑树的根
-typedef struct RBTree {
-    Type typeKey;
-    Type typeVal;
-    RBNode *root;
-    int length;
-    bool multi: 8;
-} RBTree;
+
 typedef struct GCNode {
     struct GCNode *next;
     struct GCNode *prev;
@@ -136,7 +114,7 @@ struct longjmp {
     jmp_buf b;
     volatile errcode status;
 };
-
+typedef struct RBTree RBTree;
 typedef struct glstate {
     GC gc;
     stringtable strt;

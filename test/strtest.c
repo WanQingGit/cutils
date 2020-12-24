@@ -22,34 +22,34 @@ void testStrUtils();
 int main(){
   CTRL.init(NULL);
   STR2.init_env();
-  testStrUtils();
   countTime(testStrApi(&STR););
   countTime(testStrApi(&STR2););
+  testStrUtils();
   STR2.destroy();
   CTRL.destroy();
 	return 0;
 }
-static qmap *map;
+static qmap *type_convert_table;
 void init_type_table(){
-  map=Map.create(typeString,MAP_TABLE);
+  type_convert_table=Map.create(typeString, MAP_TABLE);
   qentry entry;
-  assert(!Map.gset(map,STR2.get("boolean"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("boolean"), true, &entry));
   map_set_val(entry,"Z");
-  assert(!Map.gset(map,STR2.get("byte"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("byte"), true, &entry));
   map_set_val(entry,"B");
-  assert(!Map.gset(map,STR2.get("char"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("char"), true, &entry));
   map_set_val(entry,"C");
-  assert(!Map.gset(map,STR2.get("short"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("short"), true, &entry));
   map_set_val(entry,"S");
-  assert(!Map.gset(map,STR2.get("int"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("int"), true, &entry));
   map_set_val(entry,"I");
-  assert(!Map.gset(map,STR2.get("long"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("long"), true, &entry));
   map_set_val(entry,"J");
-  assert(!Map.gset(map,STR2.get("float"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("float"), true, &entry));
   map_set_val(entry,"F");
-  assert(!Map.gset(map,STR2.get("double"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("double"), true, &entry));
   map_set_val(entry,"D");
-  assert(!Map.gset(map,STR2.get("void"),true,&entry));
+  assert(!Map.gset(type_convert_table, STR2.get("void"), true, &entry));
   map_set_val(entry,"V");
 }
 void addType(qstrbuf *buf,qstr *argtype){
@@ -57,7 +57,7 @@ void addType(qstrbuf *buf,qstr *argtype){
   if(argtype->val[0]=='['){
     buf_add(buf,str_val(argtype));
 //    STR.sub(buf,str_val(argtype),".","/");
-  } else if(Map.gset(map,argtype,false,&entry)){
+  } else if(Map.gset(type_convert_table, argtype, false, &entry)){
     buf_add(buf,(char*)entry.dict->val);
   }else{
     StrUtils.add(buf,(char*)'L',-1);
@@ -75,6 +75,7 @@ void testStrUtils(){
   addType(&buf,STR2.get("void"));
   StrUtils.sub(&buf2,buf.val,".","/");
   printf("%s\n",buf2.val);
+  Map.destroy(type_convert_table);
   free(buf.val);
   free(buf2.val);
 }

@@ -1,5 +1,4 @@
 /*
- * qtable.c
  *
  *  Created on: 2019年3月12日
  *      Author: WanQing
@@ -117,10 +116,11 @@ static bool map_gset(qmap *t, const qobj *key, bool insert,
     return false;
   Type keytype = map_keytype(t);
   if (keytype) {
+    comparefun compare=keytype->compare;
     size_t hash = keytype->hash(key);
     qentry_dict *entry2 = gentry2(t, hash);
     while (entry2) {
-      if ((keytype->compare(entry2->key, key) == 0)) {
+      if ((compare(entry2->key, key) == 0)) {
         res->dict = entry2;
         return true;
       }
