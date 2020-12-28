@@ -13,6 +13,11 @@
 #include "strutils.h"
 #include "mem.h"
 
+ struct qstringtable {
+    qstr **ht;
+    uint nuse; /* number of elements */
+    uint size;
+} strt;
 static qstr *string_createlstr(size_t l, const char *str);
 
 static qstr *string_get(const char *str);
@@ -27,7 +32,7 @@ static qstr *string_new(const char *str, size_t l);
 void string_table_resize(int newsize) {
   int i;
   qstr *p, *hnext;
-  stringtable *tb = &(_G->strt);
+  struct qstringtable *tb = &(strt);
   if (newsize != tb->size) { /* grow table if needed */
     mem_realloc_vector(tb->ht, tb->size, newsize, qstr*);
   }
@@ -51,7 +56,7 @@ static qstr *gshrstr( const char *str, size_t l) {
   qstr *ts;
   gl_state *g = _G;
   unsigned int h = str_hash_count(str, l, g->seed);
-  qstr **list = &g->strt.ht[h & (g->strt.size - 1)];
+  qstr **list = &strt.ht[h & (strt.size - 1)];
   qassert(str != NULL);
   for (ts = *list; ts; ts = ts->hnext) {
     if (l == ts->len && h == ts->hash
@@ -61,9 +66,9 @@ static qstr *gshrstr( const char *str, size_t l) {
       return ts;
     }
   }
-  if (g->strt.nuse >= g->strt.size && g->strt.size <= UINT_MAX / 2) {
-    string_table_resize(g->strt.size * 2);
-    list = &g->strt.ht[h & (g->strt.size - 1)]; /* recompute with new size */
+  if (strt.nuse >= strt.size && strt.size <= UINT_MAX / 2) {
+    string_table_resize(strt.size * 2);
+    list = &strt.ht[h & (strt.size - 1)]; /* recompute with new size */
   }
   ts = newstr(l, h, str);
   incr_ref(ts);
@@ -76,7 +81,7 @@ static qstr *gshrstr( const char *str, size_t l) {
 //  }
   ts->hnext = *list;
   *list = ts;
-  g->strt.nuse++;
+  strt.nuse++;
   return ts;
 }
 
@@ -95,7 +100,7 @@ static qstr *string_new(const char *str, size_t l) {
 static qstr *string_del(qstr *str){
   gl_state *g = _G;
   qstr *nextstr=str->hnext;
-  qstr **list = &g->strt.ht[str->hash & (g->strt.size - 1)];
+  qstr **list = &strt.ht[str->hash & (strt.size - 1)];
 }
 
 static qstr *string_createlstr(size_t l, const char *str) {
@@ -115,25 +120,25 @@ static qstr *newstr(size_t l, unsigned int h,
 }
 
 static size_t  strt_size() {
-  return _G->strt.nuse;
+  return strt.nuse;
 }
 
 void strt_destroy() {
-  stringtable *strt = &_G->strt;
+  struct qstringtable *strtable = &strt;
   qstr *str;
-  int size = strt->size;
+  int size = strtable->size;
   for (int i = 0; i < size; i++) {
-    str = strt->ht[i];
+    str = strtable->ht[i];
     while (str) {
       qstr *s = str;
       str = str->hnext;
       Mem.alloc(o2gc(s), sizeof(qstr) + (s->len + 1) + sizeof(GCNode),
                 0);
     }
-    strt->ht[i] = NULL;
+    strtable->ht[i] = NULL;
   }
-  strt->nuse = 0;
-  Mem.alloc(strt->ht,size*sizeof(void*),0);
+  strtable->nuse = 0;
+  Mem.alloc(strtable->ht,size*sizeof(void*),0);
 }
 void strt_init(){
   memcpy(&STR, typeString, sizeof(struct typeobj));

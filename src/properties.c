@@ -71,7 +71,7 @@ void prop_write(qprop *prop) {
 		StrUtils.add(&buf, key->val, key->len);
     StrUtils.add(&buf, sep->val, sep->len);
     StrUtils.add(&buf, val->val, val->len);
-    StrUtils.add(&buf, '\n', 0);
+    buf_add_char(&buf, '\n');
 		fwrite(buf.val, buf.n, 1, fp);
 		node = RB.next(node);
 	}

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "cutils/stl/rbtree.h"
 #include <sys/time.h>
+#include "cutils/control.h"
 #define CHECK_INSERT 0    // "插入"动作的检测开关(0，关闭；1，打开)
 #define LENGTH(a) ( (sizeof(a)) / (sizeof(a[0])) )
 #define countTime(stat) do{struct timeval start,end; \
@@ -115,7 +116,9 @@ void performanceTest(int numtest) {
 }
 
 int main() {
+  CTRL.init();
 	baseTest();
 	performanceTest(3);
+	CTRL.destroy();
 	return 0;
 }

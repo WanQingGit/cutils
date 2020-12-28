@@ -100,11 +100,7 @@ struct qbytes {
     int datasize;
 };
 
-typedef struct stringtable {
-    qstr **ht;
-    uint nuse; /* number of elements */
-    uint size;
-} stringtable;
+
 typedef struct gc {
     GCNode *allgc; /* list of all collectable objects */
     ptrdiff_t GCdebt; /* bytes allocated not yet compensated by the collector */
@@ -117,7 +113,7 @@ struct longjmp {
 typedef struct RBTree RBTree;
 typedef struct glstate {
     GC gc;
-    stringtable strt;
+    void* strt;
     RBTree *typeinfos;
     errfun errf;
     uint seed;

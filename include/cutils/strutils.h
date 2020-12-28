@@ -58,7 +58,10 @@ char skip_space(char** s);
 uint makeseed(State *S);
 
 struct QStrUtils{
+
+#define buf_add_tail(buf) (buf)->val[(buf)->n]='\0'
 #define buf_add(buf,s) StrUtils.add(buf,s,strlen(s))
+#define buf_add_char(buf,s) StrUtils.add(buf,(char*)s,-1)
     void (*add)(qstrbuf *buffer, const char *s, int n);
     /*
      * 将字符串s中的p替换成r,例如s="a,b" p="," r="_" 最后结果是"a_b"
