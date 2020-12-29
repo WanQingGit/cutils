@@ -86,8 +86,8 @@ typedef struct GCNode {
     ssize_t nref;
     typeobj *type;
 } GCNode;
+//    struct qstr *hnext;
 struct qstr {
-    struct qstr *hnext;
     size_t hash;
     int len;
     char val[];

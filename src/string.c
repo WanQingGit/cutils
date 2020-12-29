@@ -13,16 +13,25 @@
 #include "strutils.h"
 #include "mem.h"
 
+typedef struct qstrInner {
+    struct qstrInner *hnext;
+    size_t hash;
+    int len;
+    char val[];
+}qstrInner;
  struct qstringtable {
-    qstr **ht;
+     qstrInner **ht;
     uint nuse; /* number of elements */
     uint size;
 } strt;
-static qstr *string_createlstr(size_t l, const char *str);
+#define inner2qstr(ts) (qstr*)(&(ts)->hash)
+
+
+static qstrInner *string_createlstr(size_t l, const char *str);
 
 static qstr *string_get(const char *str);
 
-static qstr *newstr(size_t l, unsigned int h,
+static  qstrInner *newstr(size_t l, unsigned int h,
                     const char *str);
 
 static qstr *string_new(const char *str, size_t l);
@@ -31,10 +40,10 @@ static qstr *string_new(const char *str, size_t l);
 
 void string_table_resize(int newsize) {
   int i;
-  qstr *p, *hnext;
+  struct qstrInner *p, *hnext;
   struct qstringtable *tb = &(strt);
   if (newsize != tb->size) { /* grow table if needed */
-    mem_realloc_vector(tb->ht, tb->size, newsize, qstr*);
+    mem_realloc_vector(tb->ht, tb->size, newsize, struct qstrInner*);
   }
   int mod = newsize - 1;
   for (i = 0; i < tb->size; i++) { /* rehash */
@@ -53,17 +62,17 @@ void string_table_resize(int newsize) {
 typeobj _typelstr;
 Type  typeLstr=&_typelstr;
 static qstr *gshrstr( const char *str, size_t l) {
-  qstr *ts;
+  struct qstrInner *ts;
   gl_state *g = _G;
   unsigned int h = str_hash_count(str, l, g->seed);
-  qstr **list = &strt.ht[h & (strt.size - 1)];
+  struct qstrInner **list = &strt.ht[h & (strt.size - 1)];
   qassert(str != NULL);
   for (ts = *list; ts; ts = ts->hnext) {
     if (l == ts->len && h == ts->hash
         && (memcmp(str, gstr(ts), l * sizeof(char)) == 0)) {
 //            if (isdead(g, o2gc(ts))) /* dead (but not collected yet)? */
 //                changewhite(o2gc(ts)); /* resurrect it */
-      return ts;
+      return inner2qstr(ts);
     }
   }
   if (strt.nuse >= strt.size && strt.size <= UINT_MAX / 2) {
@@ -82,7 +91,7 @@ static qstr *gshrstr( const char *str, size_t l) {
   ts->hnext = *list;
   *list = ts;
   strt.nuse++;
-  return ts;
+  return inner2qstr(ts);
 }
 
 static qstr *string_get(const char *str) {
@@ -93,25 +102,26 @@ static qstr *string_new(const char *str, size_t l) {
   if (l <= MAXSHORTLEN)
     return gshrstr( str, l);
   else {
-    qstr *ts = string_createlstr(l, str);
-    return ts;
+    qstrInner *ts = string_createlstr(l, str);
+    return inner2qstr(ts);
   }
 }
-static qstr *string_del(qstr *str){
+static qstr *string_del(qstr *s){
+   qstrInner *str=(qstrInner *)((char*)s-offsetof(struct qstrInner,hash));
   gl_state *g = _G;
   qstr *nextstr=str->hnext;
   qstr **list = &strt.ht[str->hash & (strt.size - 1)];
 }
 
-static qstr *string_createlstr(size_t l, const char *str) {
-  qstr *ts = newstr(l, 0, str);
+static  qstrInner *string_createlstr(size_t l, const char *str) {
+   qstrInner *ts = newstr(l, 0, str);
   return ts;
 }
 
-static qstr *newstr(size_t l, unsigned int h,
+static qstrInner *newstr(size_t l, unsigned int h,
                     const char *str) {
-  size_t totalsize = sizeof(qstr) + (l + 1) * sizeof(char);
-  qstr *ts = cast(qstr*, Mem.new(typeString, totalsize));
+  size_t totalsize = sizeof(struct qstrInner) + (l + 1) * sizeof(char);
+  qstrInner *ts = cast(qstrInner*, Mem.new(typeString, totalsize));
   ts->hash = h;
   ts->len = l;
   memcpy(gstr(ts), str, l * sizeof(char));
@@ -125,14 +135,14 @@ static size_t  strt_size() {
 
 void strt_destroy() {
   struct qstringtable *strtable = &strt;
-  qstr *str;
+  qstrInner *str;
   int size = strtable->size;
   for (int i = 0; i < size; i++) {
     str = strtable->ht[i];
     while (str) {
-      qstr *s = str;
+      qstrInner *s = str;
       str = str->hnext;
-      Mem.alloc(o2gc(s), sizeof(qstr) + (s->len + 1) + sizeof(GCNode),
+      Mem.alloc(o2gc(s), sizeof(qstrInner) + (s->len + 1) + sizeof(GCNode),
                 0);
     }
     strtable->ht[i] = NULL;

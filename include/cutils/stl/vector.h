@@ -94,6 +94,10 @@ struct QVectorApi {
 
 extern struct QVectorApi Arr;
 const extern Type typeList;
+
+#define iter_list(l,val) for(size_t val##_i=0,val##_len=(l)->length;val##_i<val##_len;val=(typeof(val))(l)->data[val##_i],val##_i++)
+
+
 #ifdef __cplusplus
 }
 #endif

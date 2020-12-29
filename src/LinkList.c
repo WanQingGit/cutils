@@ -193,11 +193,11 @@ static qlist link_addArray(qlist l, intptr_t *data, int n) {
 }
 void link_cache_clear() {
 	for (int i = 0; i < numfreelist; i++) {
-		Mem.alloc( free_list[i], sizeof(struct linklist), NULL);
+		Mem.alloc( free_list[i], sizeof(struct linklist), 0);
 	}
 	numfreelist = 0;
 	for (int i = 0; i < numfreenode; i++) {
-		Mem.alloc( free_node[i], sizeof(lnode), NULL);
+		Mem.alloc( free_node[i], sizeof(lnode), 0);
 	}
 	numfreenode = 0;
 }

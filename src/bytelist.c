@@ -154,7 +154,7 @@ static void bytes_shrink(qbytes *list) {
 }
 void bytes_cache_clear() {
 	for (int i = 0; i < numfreelist; i++) {
-		Mem.alloc( free_list[i], sizeof(struct qbytes), NULL);
+		Mem.alloc( free_list[i], sizeof(struct qbytes), 0);
 	}
 	numfreelist = 0;
 }
