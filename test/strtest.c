@@ -79,21 +79,21 @@ void testStrUtils(){
   free(buf.val);
   free(buf2.val);
 }
-void testStrApi(struct QString *STR2) {
-  size_t presize=STR2->size();
-  qstr *str1=STR2->get("nihao");
-  qstr *str2=STR2->get("nihao");
+void testStrApi(struct QString *StrApi) {
+  size_t presize=StrApi->size();
+  qstr *str1=StrApi->get("nihao");
+  qstr *str2=StrApi->get("nihao");
   assert(str1 == str2);
   char buf[48];
   for(int z=0;z<10;z++){
     for(int i=0;i<10240;i++){
       sprintf(buf,"test_str:%d",i);
-      str1=STR2->get(buf);
+      str1=StrApi->get(buf);
       assert(strcmp(buf,str1->val)==0);
-      str2=STR2->get(buf);
+      str2=StrApi->get(buf);
       assert(str1==str2);
     }
   }
-  size_t currentSize=STR2->size();
+  size_t currentSize=StrApi->size();
   printf("pre:%ld current:%ld diff:%ld\n",presize,currentSize,currentSize-presize);
 }
