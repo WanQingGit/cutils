@@ -19,8 +19,8 @@ typedef enum {
 
 typedef struct qvector {
     size_t length;
-    size_t datasize;
     size_t *data;
+    size_t datasize;
     size_t capacity;
     Type type;
     assignfunc assign;
@@ -30,8 +30,8 @@ typedef struct qvector {
 
 typedef struct _qtuple {
     size_t length;
-    size_t datasize;
     size_t *data;
+    size_t datasize;
 }qtuple;
 
 #define arr_tail(l)  (l)->data[(l)->length-1]
@@ -95,7 +95,7 @@ struct QVectorApi {
 extern struct QVectorApi Arr;
 const extern Type typeList;
 
-#define iter_list(l,val) for(size_t val##_i=0,val##_len=(l)->length;val##_i<val##_len;val=(typeof(val))(l)->data[val##_i],val##_i++)
+#define iter_list(l,val) for(size_t val##_i=0,val##_len=(l)->length;val##_i<val##_len&&((val=(typeof(val))(l)->data[val##_i])||1);val##_i++)
 
 
 #ifdef __cplusplus
