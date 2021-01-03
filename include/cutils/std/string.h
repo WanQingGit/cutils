@@ -17,7 +17,7 @@ extern "C"{
 
 
 #define MINSTRTABSIZE   128
-#define str_val(s) ((s)->val)
+#define str_val(s) (const char *)((s)->val)
 struct QString {
     typeobj type;
 
