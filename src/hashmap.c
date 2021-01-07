@@ -110,13 +110,45 @@ static bool map_del(qmap *t, const qobj *key, qentry_dict *res) {
   return false;
 }
 
+static bool map_del_by_entry(qmap *t, qentry *e, size_t *slot) {
+  qentry_dict *res = e->dict;
+  size_t hash;
+  if (slot) {
+    hash = *slot;
+  } else {
+    qobj *key = res->key;
+    Type keytype = map_keytype(t);
+    if (keytype) {
+      hash = keytype->hash(res->key->val.p);
+    } else {
+      hash = key->type->hash(res->key->val.p);
+    }
+  }
+  qentry_dict *entry = gentry(t, hash).dict, *prev = NULL;
+  while (entry) {
+    if (entry == res) {
+      if (prev)
+        prev->next = entry->next;
+      else
+        gentry2(t, hash) = entry->next;
+      Mem.alloc(entry, size_entry(t), 0);
+      t->length--;
+      return true;
+    }
+    prev = entry;
+    entry = entry->next;
+  }
+  return false;
+}
+
+
 static bool map_gset(qmap *t, const qobj *key, bool insert,
                      qentry *res) {
   if (t->length == 0 && insert == false)
     return false;
   Type keytype = map_keytype(t);
   if (keytype) {
-    comparefun compare=keytype->compare;
+    comparefun compare = keytype->compare;
     size_t hash = keytype->hash(key);
     qentry_dict *entry2 = gentry2(t, hash);
     while (entry2) {
@@ -180,7 +212,7 @@ static bool map_gset(qmap *t, const qobj *key, bool insert,
 static void map_iter(qmap *t, mapIter *iter) {
   iter->m = t;
   iter->keytype = map_keytype(t);
-  iter->index = 0;
+  iter->index = -1;
   iter->entry.dict = iter->nextEntry.dict = NULL;
 }
 
@@ -192,11 +224,11 @@ static bool map_next(mapIter *iter) {
       return true;
     } else {
       int i;
-      for (i = iter->index; i < iter->m->size; i++) {
+      for (i = iter->index+1; i < iter->m->size; i++) {
         if (iter->m->entry[i].dict) {
           iter->entry = iter->m->entry[i];
           iter->nextEntry.dict = iter->entry.dict->next;
-          iter->index = i + 1;
+          iter->index = i;
           return true;
         }
       }
@@ -264,5 +296,5 @@ static void map_destroy(qmap *map) {
   Mem.alloc(map, size_map, 0);
 }
 
-struct MapInterface Map = {.create=map_new, map_resize, map_gset, map_del, map_iter,
-                     map_next, map_destroy};
+struct MapInterface Map = {.create=map_new, map_resize, map_gset, map_del, map_del_by_entry, map_iter,
+                                            map_next, map_destroy};

@@ -48,6 +48,7 @@ int main() {
 	}
 	for (i = 0; i < TESTSIZE; i++) {
 		qassert(Map.gset(map, i + 1, false, &entry) == true);
+
 	}
 	typeMap->serialize(bytes, map);
 	Map.destroy(map);
@@ -86,7 +87,23 @@ int main() {
     qassert(entry2.val == i);
 	}
   qassert(map->length == 0);
+  Map.destroy(map);
+
+  map = Map.create( typeInt, true);
+  map->valtype = typeInt;
+  for (i = 0; i < TESTSIZE; i++) {
+    Map.gset( map, i + 1, true, &entry);
+    entry.dict->val = i;
+  }
+  Map.iterator(map, &iter);
+  while (Map.next(&iter)) {
+    qentry_dict *entry = iter.entry.dict;
+    printf("%ld:%d\n", entry->key, entry->val);
+    assert(Map.del_by_entry(map,&iter.entry,&iter.index));
+  }
+  qassert(map->length == 0);
 	Map.destroy(map);
+
 	Bytes.destroy(&bytes);
 	STR2.destroy();
 	CTRL.destroy();

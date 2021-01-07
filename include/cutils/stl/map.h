@@ -95,15 +95,15 @@ typedef enum {
 struct QHashMap {
     qentry *entry;
     Type valtype;
-    uint size;
-    uint length;
+    ssize_t size;
+    ssize_t length;
     MapType type;
 };
 //#define map_keytype(t) ((t)->keytype)
 typedef struct mapIter {
 	qmap *m;
 	Type keytype;
-	int index;
+	ssize_t index;
 	qentry entry;
 	qentry nextEntry;
 } mapIter;
@@ -126,6 +126,7 @@ struct MapInterface {
 	bool (*gset)(qmap *t, const void *key, bool insert, qentry *res);
 //	qentry (*gset)(State *S, qmap *t, const qobj *key, bool isert);
 	bool (*del)(qmap *t, const void *key, qentry_dict *res);
+	bool (*del_by_entry)(qmap *t, qentry *res,size_t *slot);
 //	bool (*del)(State *S, qmap *t, const qobj *key, qobj *keyval);
 	void (*iterator)(qmap *t, mapIter *iter);
 	bool (*next)(mapIter *iter);
