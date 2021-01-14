@@ -97,7 +97,7 @@ const extern Type typeList;
 
 #define iter_list(l,val) for(size_t val##_i=0,val##_len=(l)->length;val##_i<val##_len&&((val=(typeof(val))(l)->data[val##_i])||1);val##_i++)
 
-
+#define iter_list_data(l,val) for(size_t val##_i=0,val##_len=(l)->length,val##_datasize=(l)->datasize;val##_i<val##_len&&((val=(typeof(val))((char*)((l)->data)+val##_i*val##_datasize))||1);val##_i++)
 #ifdef __cplusplus
 }
 #endif

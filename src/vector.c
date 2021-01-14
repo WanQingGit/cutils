@@ -21,7 +21,6 @@ static qvec list_create(Type type, int cap, ArrMode mode) {
   if (numfreelist > 0) {
     numfreelist--;
     l = free_list[numfreelist];
-    l->length = 0;
   } else {
     l = (qvec) Mem.alloc(NULL, 0, sizeof(struct qvector));
   }
@@ -32,6 +31,7 @@ static qvec list_create(Type type, int cap, ArrMode mode) {
     datasize = type->size;
   } else
     datasize = sizeof(void *);
+  l->length = 0;
   l->datasize = datasize;
   l->data = Mem.alloc(NULL, 0, datasize * cap);
   l->capacity = cap;
@@ -251,7 +251,7 @@ static void list_destroy(qvec *list_ptr) {
 //        destructor(data[i]);
     }
   }
-  Mem.alloc(data, sizeof(qval) * l->capacity, 0);
+  Mem.alloc(data, l->datasize * l->capacity, 0);
   if (numfreelist < MAXFREELIST) {
     free_list[numfreelist] = l;
     numfreelist++;
