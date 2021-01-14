@@ -23,8 +23,8 @@ typedef struct qvector {
     size_t datasize;
     size_t capacity;
     Type type;
-    assignfunc assign;
-    comparefun compare;
+//    assignfunc assign;
+//    comparefun compare;
     ArrMode mode;
 } qvector;
 

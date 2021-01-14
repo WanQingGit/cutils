@@ -36,8 +36,6 @@ static qvec list_create(Type type, int cap, ArrMode mode) {
   l->data = Mem.alloc(NULL, 0, datasize * cap);
   l->capacity = cap;
   l->mode = mode;
-  if (type)
-    l->assign = type->assign;
   return l;
 }
 
@@ -47,8 +45,8 @@ static qvec _list_append(qvec list, void *data) {
   }
   if (list->mode & ARR_DATA) {
     void *dst = ((char *) list->data) + list->length * list->datasize;
-    if (list->assign)
-      list->assign(data, dst);
+    if (list->type&&list->type->assign)
+      list->type->assign(data, dst);
     else {
       memcpy(dst, data, list->datasize);
     }
@@ -103,8 +101,8 @@ static qvec add(qvec l, int index, void *data) {
 //      ptr[used] = ptr[used - 1];
     }
   }
-  if (l->assign)
-    l->assign(ptr + index * datsize, data);
+  if (l->type&&l->type->assign)
+    l->type->assign(ptr + index * datsize, data);
   else
     memcpy(ptr + index * datsize, data, datsize);
 //  ptr[index] = data;
@@ -113,7 +111,7 @@ static qvec add(qvec l, int index, void *data) {
 }
 
 static qvec addSort(qvec l, void *data, bool keepSame) {
-  comparefun cmp = l->compare;
+  comparefun cmp = l->type->compare;
   int used = l->length;
   int i, mid, low = 0, high = used - 1;
   if (l->mode & ARR_DATA) {
