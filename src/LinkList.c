@@ -149,7 +149,7 @@ static void link_destroy(qlist *list_ptr, void (*destructor)(void*)) {
 			qassert(node != ll_iter(l));
 			tmp = node->next;
 			if (destructor && node->data) {
-				if (destructor == LIST_FORECE_FREE)
+				if ((size_t)destructor == LIST_FORECE_FREE)
 					qfree(node->data);
 				else
 					destructor(node->data);

@@ -62,7 +62,7 @@ int deserialInt(byte *l, intptr_t *i) {
 char* int2str(qbytes* bytes, INT o) {
 	checksize(bytes, 20); //long max
 	char *ptr = Bytes_tail(bytes, char);
-	bytes->length += sprintf(ptr, "%d", o);
+	bytes->length += sprintf(ptr, "%lld", o);
 	return ptr;
 }
 INT cmpFloat(FLT a, FLT b) {

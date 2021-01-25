@@ -96,7 +96,7 @@ static RBTree* rb_create(Type typeKey, Type typeVal) {
  */
 static void preorder(RBNode *node) {
 	if (node != NULL) {
-		printf("%d ", node->key);
+		printf("%ld ", node->key);
 		preorder(node->left);
 		preorder(node->right);
 	}
@@ -114,7 +114,7 @@ static void rb_preorder(RBTree *tree) {
 	stack[top++] = tree->root;
 	while (top > 0) {
 		node = stack[--top];
-		printf("%d ", node->key);
+		printf("%ld ", node->key);
 		if (node->right)
 			stack[top++] = node->right;
 		if (node->left)
@@ -182,7 +182,7 @@ static void postorder(RBNode *node) {
 	if (node != NULL) {
 		postorder(node->left);
 		postorder(node->right);
-		printf("%d ", node->key);
+		printf("%ld ", node->key);
 	}
 }
 
@@ -198,7 +198,7 @@ static RBNode* rb_nearest(RBTree *tree, rbtype key, rb_flag flag) {
 	RBNode *x = tree->root, *below = NULL, *above = NULL;
 	INT res;
 	while (x) {
-		res = tree->typeKey->compare(key, x->key);
+		res = tree->typeKey->compare(key, (void*)x->key);
 		if (res == 0) //x->key == key
 			return x;
 		if (res < 0) { //key < x->key

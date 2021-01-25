@@ -13,7 +13,7 @@ extern "C"{
 #include "cutils/object.h"
 
 
-#define gnode(t,i)	((t)->table+i)
+
 /* 'const' to avoid wrong writings that can mess up field 'next' */
 #define gkey(n)		(&(n)->key)
 #define gentry(t,h) (t->entry[(t->size-1)&h])
@@ -21,10 +21,10 @@ extern "C"{
 #define gentry2(t,h) gentry(t,h).dict
 //#define gentry(t,h) (t->table+(t->size-1)&h)
 #define gnext(n)	((n)->next)
-#define gval(n)		(&(n)->val)
-#define map_set_val(entry,v) entry.dict->val=(qobj*)(v);
+
+#define map_set_val(entry,v) entry.dict->val=(qobj*)(size_t)(v);
 #define map_set_key(entry,v) entry.dict->key=(qobj*)(v);
-#define map_get_val(entry,v) v=(typeof(v))((entry).dict->val)
+#define map_get_val(entry,v) v=(typeof(v))(size_t)((entry).dict->val)
 #define map_get_key(entry,v) v=(typeof(v))((entry).dict->key)
 #define map_gsetInt(S,t,key,v) ({ \
 	qobj _o=OBJ(key,typeInt);skyt_gset(S,t,&_o,v); \

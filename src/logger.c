@@ -13,7 +13,7 @@ static void logger_log(qlogger* logger, char *msg);
 static void log_flush(qlogger* logger);
 #define checkconsole(logger)\
 		if (logger->policy & LOG_CONSOLE)\
-			fprintf(stdout, logger->buf.val)
+			fprintf(stdout,"%s", logger->buf.val)
 static qlogger* log_create(FILE *stream, LogPolicy policy) {
 	qlogger *logger = cast(qlogger *, Mem.alloc( NULL, 0, sizeof(qlogger)));
 	logger->stream = stream;
@@ -46,12 +46,12 @@ static void logger_log(qlogger* logger, char *msg) {
 	qstrbuf *buf = &logger->buf;
 	int len = strlen(msg);
   StrUtils.add(buf, msg, len);
-  StrUtils.add(buf, '\n', 0);
+  StrUtils.add(buf, (const char *)'\n', 0);
 	logger->sum += len + 1;
 	if (logger->policy == 0)
 		return;
 	else if (logger->buf.n > logger->cachesize || logger->policy & LOG_ACTIVE) {
-		fprintf(logger->stream, buf->val);
+		fprintf(logger->stream,"%s", buf->val);
 		checkconsole(logger);
 		buf->n = 0;
 	}
@@ -61,7 +61,7 @@ static void logger_add(qlogger* logger, char *msg, int len) {
   StrUtils.add(buf, msg, len);
 	logger->sum += len;
 	if (logger->buf.n > logger->cachesize || logger->policy & LOG_ACTIVE) {
-		fprintf(logger->stream, buf->val);
+		fprintf(logger->stream,"%s", buf->val);
 		checkconsole(logger);
 		buf->n = 0;
 	}
@@ -69,7 +69,7 @@ static void logger_add(qlogger* logger, char *msg, int len) {
 static void log_flush(qlogger* logger) {
 	qstrbuf *buf = &logger->buf;
 	if (buf->n) {
-		fprintf(logger->stream, buf->val);
+		fprintf(logger->stream, "%s",buf->val);
 		checkconsole(logger);
 		buf->n = 0;
 	}

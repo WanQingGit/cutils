@@ -242,7 +242,7 @@ static void qbufAdd(qstrbuf *buffer, const char *s, int n) {
       buffer->val = (char *) realloc(buffer->val, (nsize + 1) * sizeof(char));
       buffer->size = nsize;
     }
-    buffer->val[buffer->n++] = cast(char, s);
+    buffer->val[buffer->n++] = cast(char, (size_t)s);
   } else {
     qerror("cannot add a string of negative length", ERR_RUN);
   }

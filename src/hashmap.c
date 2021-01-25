@@ -7,7 +7,8 @@
 #include "cutils/object.h"
 #include "cutils/mem.h"
 #include "cutils/control.h"
-
+#define gnode(t,i)	((t)->table+i)
+#define gval(n)		(&(n)->val)
 #define MAP_MINSIZE 4
 #define uentry(t) t->entry
 #define size_entry(t) ((t)->type&MAP_TABLE)?sizeof(qentry_dict):sizeof(qentry_set)
@@ -71,9 +72,9 @@ static bool map_del(qmap *t, const qobj *key, qentry_dict *res) {
         else
           gentry2(t, hash) = entry->next;
         if (res) {
-          res->key = &entry->key;
+          res->key = entry->key;
           if (t->type & MAP_TABLE)
-            res->val = &entry->val;
+            res->val = entry->val;
         }
         Mem.alloc(entry, size_entry(t), 0);
         t->length--;
