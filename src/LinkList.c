@@ -202,5 +202,5 @@ void link_cache_clear() {
 	numfreenode = 0;
 }
 struct apiList List = { link_create, link_newnode, link_append, link_insert,
-		linkNodeToPrev, link_remove, link_at, link_destroy, link_append,
+		.linkNodeToPrev=linkNodeToPrev, .remove=link_remove, link_at, link_destroy, link_append,
 		link_insert, link_pop_back, link_pop_front, link_addArray }; //链表
