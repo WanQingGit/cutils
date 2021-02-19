@@ -23,7 +23,7 @@ int main() {
 	map=Map.create(&STR2.type,MAP_TABLE|MAP_FREE_VAL);
 	map->valtype=typeList;
 	qentry qentry1;
-	assert(!Map.gset(map,STR2.get("nihao"),true,&qentry1));
+	assert(!Map.gset(map,luaS_new(L,"nihao"),true,&qentry1));
 	qvec vec=Arr.create(typeInt,8,ARR_TYPE|ARR_PTR);
 	qentry1.dict->val=vec;
 	Arr.append(vec,12);
