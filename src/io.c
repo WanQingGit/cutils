@@ -25,6 +25,7 @@ char *file_read(char *path) {
 qreader *reader_create(char *path) {
 	qreader *reader = qmalloc(qreader);
 	reader->file = fopen(path, "r");
+	return reader;
 }
 int read_line(qreader *reader) {
 	return fgets(reader->content, READ_SIZE, reader->file);

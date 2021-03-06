@@ -111,6 +111,7 @@ static qstr *string_del(qstr *s){
   gl_state *g = _G;
   qstr *nextstr=str->hnext;
   qstr **list = &strt.ht[str->hash & (strt.size - 1)];
+  return str;
 }
 
 static  qstrInner *string_createlstr(size_t l, const char *str) {
